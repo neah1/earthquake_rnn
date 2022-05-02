@@ -1,72 +1,88 @@
+import numpy as np
 import torch
 import torch.nn as nn
-
-"""
-empty, zeros, ones, rand, tensor
-size(), view(), mean(), slice[:, :]
-device(cuda, cpu), to(), numpy(), from_numpy()
-requires_grad, w.detach(), with torch.no_grad():, x.grad.zero_()
-"""
-
+from matplotlib import pyplot as plt
+from sklearn import datasets
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
 
 # Neural Network Pipeline
+# 0) Prepare data
+bc = datasets.load_breast_cancer()
+X, y = bc.data, bc.target
+
+# 0.1) Pre-process data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+sc = StandardScaler()
+
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+X_train = torch.from_numpy(X_train.astype(np.float32))
+X_test = torch.from_numpy(X_test.astype(np.float32))
+y_train = torch.from_numpy(y_train.astype(np.float32))
+y_test = torch.from_numpy(y_test.astype(np.float32))
+
+y_train = y_train.view(y_train.shape[0], 1)
+y_test = y_test.view(y_test.shape[0], 1)
+
 
 # 1) Design model (input size, output size, forward pass)
-
-class NewModel(nn.Module):
-    def __init__(self, input_dim, output_dim):
-        super(NewModel, self).__init__()
-        # Define layers
-        self.lin = nn.Linear(input_dim, output_dim)
+class NeuralNetBinary(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(NeuralNetBinary, self).__init__()
+        self.linear1 = nn.Linear(input_size, hidden_size)
+        self.relu = nn.ReLU()
+        self.linear2 = nn.Linear(hidden_size, output_size)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        return self.lin(x)
+        out = self.linear1(x)
+        out = self.relu(out)
+        out = self.linear2(out)
+        out = self.sigmoid(out)
+        return out
 
-
-X = torch.tensor([[1], [2], [3], [4]], dtype=torch.float32)
-Y = torch.tensor([[2], [4], [6], [8]], dtype=torch.float32)
-X_test = torch.tensor([5], dtype=torch.float32)
 
 n_samples, n_features = X.shape
-input_size = n_features
-output_size = n_features
-
-model = NewModel(input_size, output_size)
-
+model = NeuralNetBinary(input_size=n_features, hidden_size=5, output_size=1)
 print(f'Samples = {n_samples}, Features = {n_features}')
-print(f'Prediction before training: f({X_test.item()}) = {model(X_test).item():.3f}')
 
 # 2) Construct loss and optimizer
-n_iters = 1000
-stop_value = 0.00001
+n_epochs = 1000
+stop_value = 0.0001
 learning_rate = 0.01
 
-loss = nn.MSELoss()
+criterion = nn.BCELoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 # 3) Training loop
-for epoch in range(n_iters):
+for epoch in range(n_epochs):
     # Forward_pass: compute prediction
-    y_pred = model(X)
-
+    y_pred = model(X_train)
     # Compute loss
-    l = loss(Y, y_pred)
-
+    loss = criterion(y_pred, y_train)
     # Backward_pass: compute gradient
-    l.backward()
-
+    loss.backward()
     # Update_weights
     optimizer.step()
-
     # Empty_grad
     optimizer.zero_grad()
-
-    if epoch % 100 == 0:
-        [w, b] = model.parameters()
-        print(f'Epoch {epoch + 1}: weight = {w[0][0].item():.3f}, loss = {l:.8f}')
-
-    if l < stop_value:
-        print('Training stopped')
+    # Print intermediate results
+    if (epoch + 1) % 100 == 0:
+        print(f'Epoch {epoch + 1}: loss = {loss.item():.4f}')
+    # Early stopping
+    if loss < stop_value:
+        print(f'Training stopped. Epoch {epoch + 1}: loss = {loss.item():.4f}')
         break
 
-print(f'Prediction after training: f(5) = {model(X_test).item():.3f}')
+# 4) Plot results
+with torch.no_grad():
+    prediction = model(X_test).round()
+    acc = prediction.eq(y_test).sum() / float(y_test.shape[0])
+    print(f'Accuracy = {acc:.4f}')
+
+    # predicted = y_pred.detach()
+    # plt.plot(X_test.numpy(), y_test.numpy(), 'ro')
+    # plt.plot(X_test.numpy(), predicted.numpy(), 'b')
+    # plt.show()

@@ -7,20 +7,21 @@ import pickle
 import os
 import logging
 from obspy import read
-
 from obspy.clients.fdsn.mass_downloader import RectangularDomain, Restrictions, MassDownloader
 from scipy import signal
 from obspy import UTCDateTime
 from obspy.clients.fdsn import Client as FDSN_Client
 from obspy import read_inventory
 import asyncio
+from itertools import islice
 
 events_df = pd.read_pickle('data/events_processed.pkl')
 stations_df = pd.read_pickle('data/stations_processed.pkl')
 
-events_full = events_df[(events_df.time > '2016-01-01') & (events_df.time < '2017-01-01')]
-events_full.shape
-events = events_full[10:20]
+# events_full = events_df
+# events = events_full[0:10]
+events = events_df
+
 mdl = MassDownloader(providers=['GEONET'])
 
 
@@ -42,8 +43,6 @@ def mass_data_downloader(start, stop, event_id, Station,
     Channel: 3-character channel code
     Location: 10.
     '''
-    # print("=" * 65)
-    # print("Initiating mass download request.")
 
     domain = RectangularDomain(
         minlatitude=-47.749,
@@ -55,8 +54,7 @@ def mass_data_downloader(start, stop, event_id, Station,
     restrictions = Restrictions(
         starttime=start,
         endtime=stop,
-        # 24 hr
-        chunklength_in_sec=86400,
+        chunklength_in_sec=None,
         network=Network,
         station=Station,
         location=Location,
@@ -74,27 +72,31 @@ def mass_data_downloader(start, stop, event_id, Station,
         mseed_storage=f"datasets/normal/waveforms/{ev_str}",
         stationxml_storage="datasets/normal/stations",
     )
+    print('done: ', event_id)
 
 
 logger = logging.getLogger("obspy.clients.fdsn.mass_downloader")
 logger.setLevel(logging.WARNING)
 
 
-async def final_download():
+async def final_download_threaded(events):
+    tasks = []
+    print("Initiating mass download request.")
     for i, event in events.iterrows():
         event_id = event.event_id
         event_time = event['time']
         start = event_time - 30
-        end = event_time
+        end = event_time + 30
+        stations = ",".join([station.station_code for j, station in stations_df.iterrows()])
+        tasks.append(asyncio.to_thread(mass_data_downloader, start, end, event_id, stations))
 
-        print("=" * 65)
-        print("Initiating mass download request.")
-        print(event_id)
-
-        tasks = [asyncio.to_thread(mass_data_downloader, start, end, event_id, station.station_code) for j, station in
-                 stations_df.iterrows()]
-        await asyncio.gather(*tasks)
+    await asyncio.gather(*tasks)
 
 
-if __name__ == '__main__':
-    await final_download()
+# VARIABLES FOR DOWNLOAD
+T_event = 30
+H_event = 30
+threads_at_once = 100
+##
+for event_sublist in [events[x:x + threads_at_once] for x in range(0, len(events), threads_at_once)]:
+    await final_download_threaded(event_sublist)
