@@ -110,29 +110,29 @@ with torch.no_grad():
     print(f'Accuracy = {acc:.4f}')
 
 
-FILE = "model.pth"
-torch.save(model.state_dict(), FILE)
-model = NeuralNet(input_size, hidden_size, num_classes)
-model.load_state_dict(torch.load(FILE, map_location=device))
-model.to(device)
-
-
-CHECK = "checkpoint.pth"
-checkpoint = {
-    "epoch": 90,
-    "model_state": model.state_dict(),
-    "optim_state": optimizer.state_dict()
-}
-torch.save(checkpoint, CHECK)
-
-loaded_checkpoint = torch.load(CHECK, map_location=device)
-
-epoch = loaded_checkpoint["epoch"]
-
-model = NeuralNet(input_size, hidden_size, num_classes)
-model.load_state_dict(loaded_checkpoint["model_state"])
-model.to(device)
-
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-optimizer.load_state_dict(loaded_checkpoint["optim_state"])
+# FILE = "model.pth"
+# torch.save(model.state_dict(), FILE)
+# model = NeuralNet(input_size, hidden_size, num_classes)
+# model.load_state_dict(torch.load(FILE, map_location=device))
+# model.to(device)
+#
+#
+# CHECK = "checkpoint.pth"
+# checkpoint = {
+#     "epoch": 90,
+#     "model_state": model.state_dict(),
+#     "optim_state": optimizer.state_dict()
+# }
+# torch.save(checkpoint, CHECK)
+#
+# loaded_checkpoint = torch.load(CHECK, map_location=device)
+#
+# epoch = loaded_checkpoint["epoch"]
+#
+# model = NeuralNet(input_size, hidden_size, num_classes)
+# model.load_state_dict(loaded_checkpoint["model_state"])
+# model.to(device)
+#
+# optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+# optimizer.load_state_dict(loaded_checkpoint["optim_state"])
 
