@@ -1,17 +1,14 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from matplotlib import pyplot as plt
 from sklearn import datasets
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
-# Neural Network Pipeline
 # 0) Prepare data
 bc = datasets.load_breast_cancer()
 X, y = bc.data, bc.target
 
-# 0.1) Pre-process data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 sc = StandardScaler()
 
@@ -81,8 +78,3 @@ with torch.no_grad():
     prediction = model(X_test).round()
     acc = prediction.eq(y_test).sum() / float(y_test.shape[0])
     print(f'Accuracy = {acc:.4f}')
-
-    # predicted = y_pred.detach()
-    # plt.plot(X_test.numpy(), y_test.numpy(), 'ro')
-    # plt.plot(X_test.numpy(), predicted.numpy(), 'b')
-    # plt.show()
