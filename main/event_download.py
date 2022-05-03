@@ -56,7 +56,7 @@ def save_cat(cat):
     data_map = {'event_id': event_ids, 'time': event_times, 'latitude': latitudes, 'longitude': longitudes,
                 'magnitude': magnitudes, 'depth': depths}
     df = pd.DataFrame(data=data_map)
-    df.to_pickle('events/events.pkl')
+    df.to_pickle('./events/events.pkl')
 
 
 client = FDSN_Client("GEONET")

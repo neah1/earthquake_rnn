@@ -69,8 +69,8 @@ def mass_data_downloader(start, stop, event_id, Station,
     mdl.download(
         domain,
         restrictions,
-        mseed_storage=f"datasets/normal/waveforms/{ev_str}",
-        stationxml_storage="datasets/normal/stations",
+        mseed_storage=f"./datasets/normal/waveforms/{ev_str}",
+        stationxml_storage="./datasets/normal/stations",
     )
     print('done: ', event_id)
 

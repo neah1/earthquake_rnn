@@ -13,8 +13,8 @@ from datetime import datetime
 # model = NeuralNet(input_size, hidden_size, num_classes).to(device)
 # model.load_state_dict(torch.load(FILE, map_location=device))
 
-# Device and tensorboard # pytorch tensorboard --logdir=main/runs
-writer = SummaryWriter("runs/" + datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
+# Device and tensorboard # pytorch tensorboard --logdir=example/runs
+writer = SummaryWriter("./runs/" + datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Hyper-parameters
