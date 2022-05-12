@@ -1,6 +1,5 @@
 .idea
 __pycache__
-example_code/
-example/runs/
-example/data/
-main/events/
+example/
+main/datasets/
+main/runs/

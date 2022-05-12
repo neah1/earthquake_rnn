@@ -4,10 +4,8 @@ import pandas as pd
 
 
 def download_events(starttime, endtime):
-    print('starting download from ', starttime, ' to ', endtime)
     cat = client.get_events(starttime=starttime, endtime=endtime, minlatitude=-47.749, maxlatitude=-33.779,
                             minlongitude=166.104, maxlongitude=178.990)
-    print("done")
     return cat
 
 
@@ -24,11 +22,10 @@ def get_all_events(starttime, endtime, step):
         else:
             cat.extend(cur_cat)
         cur = next_time
-    print("done with all downloads")
     return cat
 
 
-def save_cat(cat):
+def save_events(cat):
     event_ids = []
     event_times = []
     latitudes = []
@@ -56,9 +53,37 @@ def save_cat(cat):
     data_map = {'event_id': event_ids, 'time': event_times, 'latitude': latitudes, 'longitude': longitudes,
                 'magnitude': magnitudes, 'depth': depths}
     df = pd.DataFrame(data=data_map)
-    df.to_pickle('./events/events.pkl')
+    df.to_pickle('./datasets/events.pkl')
+
+
+def download_stations():
+    inventory = client.get_stations(starttime="2007-01-01 00:00:00.000", endtime="2019-01-01 00:00:00.000",
+                                    minlatitude=-47.749, maxlatitude=-33.779, minlongitude=166.104,
+                                    maxlongitude=178.990, level="response", location="10", channel="HHZ")
+    return inventory[0]
+
+
+def save_stations(stations_network):
+    stations = []
+    longitudes = []
+    latitudes = []
+    sites = []
+    for station in stations_network:
+        stations.append(station.code)
+        latitudes.append(station.latitude)
+        longitudes.append(station.longitude)
+        sites.append(station.site.name)
+    data_map = {'station_code': stations, 'longitude': longitudes, 'latitude': latitudes, 'site': sites}
+    df = pd.DataFrame(data=data_map)
+    df.to_pickle('./datasets/stations.pkl')
 
 
 client = FDSN_Client("GEONET")
-cat = get_all_events(datetime(1999, 12, 31), datetime(2003, 12, 31), timedelta(days=50))
-save_cat(cat)
+
+# Download events
+all_events = get_all_events(datetime(1999, 12, 31), datetime(2003, 12, 31), timedelta(days=50))
+save_events(all_events)
+
+# Download stations
+all_stations = download_stations()
+save_stations(all_stations)

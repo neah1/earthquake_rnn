@@ -13,7 +13,7 @@ from datetime import datetime
 # model = NeuralNet(input_size, hidden_size, num_classes).to(device)
 # model.load_state_dict(torch.load(FILE, map_location=device))
 
-# Device and tensorboard # pytorch tensorboard --logdir=example/runs
+# Device and tensorboard # tensorboard --logdir=main/runs
 writer = SummaryWriter("./runs/" + datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -36,6 +36,24 @@ examples = iter(test_loader)
 example_data, example_target = examples.next()
 img_grid = torchvision.utils.make_grid(example_data)
 
+# # 0) Prepare data
+# bc = datasets.load_breast_cancer()
+# X, y = bc.data, bc.target
+#
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# sc = StandardScaler()
+#
+# X_train = sc.fit_transform(X_train)
+# X_test = sc.transform(X_test)
+#
+# X_train = torch.from_numpy(X_train.astype(np.float32))
+# X_test = torch.from_numpy(X_test.astype(np.float32))
+# y_train = torch.from_numpy(y_train.astype(np.float32))
+# y_test = torch.from_numpy(y_test.astype(np.float32))
+#
+# y_train = y_train.view(y_train.shape[0], 1)
+# y_test = y_test.view(y_test.shape[0], 1)
+
 
 # 1) Design model (input size, output size, forward pass)
 class NeuralNet(nn.Module):
@@ -54,14 +72,17 @@ class NeuralNet(nn.Module):
 
 model = NeuralNet(input_size, hidden_size, output_size).to(device)
 writer.add_graph(model, example_data.reshape(-1, 28 * 28).to(device))
+
+# 2) Construct loss and optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
+
+# 3) Training loop
 running_loss = 0.0
 running_samples = 0
 running_correct = 0
 n_total_steps = len(train_loader)
-
 for epoch in range(n_epochs):
     for i, (images, labels) in enumerate(train_loader):
         images = images.reshape(-1, 28 * 28).to(device)
@@ -87,9 +108,10 @@ for epoch in range(n_epochs):
             running_correct = 0
 
         if loss < stop_value:
-            print(f'Epoch {epoch + 1}/{n_epochs}, step {i + 1}/{n_total_steps}, loss = {loss.item():.4f}')
+            print(f'Halt. Epoch {epoch + 1}/{n_epochs}, step {i + 1}/{n_total_steps}, loss = {loss.item():.4f}')
             break
 
+# 4) Save results
 with torch.no_grad():
     samples = 0
     correct = 0
