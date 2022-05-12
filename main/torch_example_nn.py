@@ -34,7 +34,7 @@ test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=Fa
 
 examples = iter(test_loader)
 example_data, example_target = examples.next()
-img_grid = torchvision.utils.make_grid(example_data)
+# img_grid = torchvision.utils.make_grid(example_data)
 
 # # 0) Prepare data
 # bc = datasets.load_breast_cancer()
