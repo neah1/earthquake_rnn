@@ -1,7 +1,7 @@
 import os
 import pickle
 import sys
-from math import ceil
+from math import ceil, floor
 
 import numpy as np
 import pandas as pd
@@ -11,36 +11,44 @@ from sklearn.preprocessing import Normalizer
 
 
 def sanitize(df):
-    print(df.shape)
+    print(f'Before: {df.shape}')
     df = df.dropna()
-    print(df.shape)
     for i, row in df.iterrows():
         if (row.str.len() < 3001).any():
             df = df.drop(i)
-    print(df.shape)
+    print(f'After: {df.shape}')
     return df
 
 
 def set_labels():
+    events = pd.read_pickle('./datasets/events_processed.pkl')
     high = events[events['magnitude'] > 2.5]['event_id'].apply(lambda x: x.split('/')[1])
     normal['label'] = 0
     active['label'] = active.index
     active['label'] = active['label'].apply(lambda x: 0 if x in list(high) else 1)
 
 
-active = pd.read_pickle('./datasets/active/waves_temp.pkl')
-normal = pd.read_pickle('./datasets/normal/waves_temp.pkl')
-events = pd.read_pickle('./datasets/events_processed.pkl')
+def combine_data(low, high, flat):
+    set_labels()
+    active_low = active[active['label'] == 1]
+    active_high = active[active['label'] == 0]
+    low_size = len(active_low)
+    high_size = len(active_high)
+    flat_size = len(normal)
 
-# active = sanitize(active)
-# normal = sanitize(normal)
-# set_labels()
+    idx = min([low_size / low, high_size / high, flat_size / flat])
+    dataset = pd.concat([active_low[:floor(idx * low)], active_high[:floor(idx * high)], normal[:floor(idx * flat)]])
+    dataset.to_pickle('./datasets/sets/dataset.pkl')
 
 
-# TODO Transform into dataloader, split (train, test, valid), shuffle (time-series), k-fold
+active = sanitize(pd.read_pickle('./datasets/active/waves_full.pkl'))
+normal = sanitize(pd.read_pickle('./datasets/normal/waves_full.pkl'))
+combine_data(low=0.5, high=0.25, flat=0.25)
+
+# TODO split (train, test, valid), shuffle (time-series), k-fold,
 
 
-# TODO Normalize, standardize and down-sample
+# TODO Normalize, scale, down-sample, sort based on time.
 # norm = Normalizer()
 # reduction_factor = 2  # TODO Try different HZ
 # new_signal = ceil(3001 / reduction_factor)

@@ -98,7 +98,7 @@ def process_waves():
                 station_data_arr[station_name] = station_data
         final_data[event] = station_data_arr
     final_data = pd.DataFrame(final_data).transpose()
-    final_data.to_pickle(f'./datasets/{folder}/waves_temp.pkl')
+    final_data.to_pickle(f'./datasets/{folder}/waves_full.pkl')
 
 
 mdl = MassDownloader(providers=['GEONET'])
@@ -116,9 +116,9 @@ else:
     H_event = 2000
 stations_df = pd.read_pickle('./datasets/stations_processed.pkl')
 
-# TODO Active 500
-# TODO Normal 500
-# TODO Download larger sample
+# TODO Active 2000
+# TODO Normal 2000
+# TODO T_event 30
 T_event = 30
 events_df = events_df[500:2000]
 
