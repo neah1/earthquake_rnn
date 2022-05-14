@@ -1,21 +1,23 @@
-import torch
-import torchvision
-import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
+from math import ceil
+
 import numpy as np
-import math
+import pandas as pd
+import torch
+from sklearn.preprocessing import Normalizer
+from torch.utils.data import Dataset
+from torchvision.transforms import Compose
 
 
-class NewDataset(Dataset):
+class TimeSeriesDataset(Dataset):
     def __init__(self, transform=None):
-        xy = np.loadtxt('PATH', delimiter=",", dtype=np.float32, skiprows=1)
-        self.x = xy[:, :]  # n_samples, n_features
-        self.y = xy[:, [0]]  # n_samples, 1
+        xy = pd.read_pickle('./datasets/sets/dataset.pkl')
+        self.x = xy.drop(columns=['label'])
+        self.y = xy['label']
         self.n_samples = xy.shape[0]
         self.transform = transform
 
     def __getitem__(self, item):
-        sample = self.x[item], self.y[item]
+        sample = self.x.iloc[item], self.y.iloc[item]
         if self.transform:
             sample = self.transform(sample)
         return sample
@@ -24,21 +26,24 @@ class NewDataset(Dataset):
         return self.n_samples
 
 
-class ToTensor:
-    def __call__(self, sample):
-        x, y = sample
-        return torch.from_numpy(x), torch.from_numpy(y)
-
-
-class MulTransform:
+class DownSample:
     def __init__(self, factor):
         self.factor = factor
+        self.signal = ceil(3001 / self.factor)
+        self.time_arr = np.linspace(0.0, 30.0, self.signal)
 
     def __call__(self, sample):
         x, y = sample
-        x *= self.factor
-        return x, y
+        res = []
+        for val in x:
+            val = val[::self.factor]
+            val = val[:self.signal]
+            res.append(val)
+        res = np.array(res)
+        return torch.tensor(res), torch.tensor(y)
 
 
-composed = torchvision.transforms.Compose([ToTensor(), MulTransform(2)])
-dataset = NewDataset(transform=composed)
+# TODO Normalize, scale
+# TODO split (train, test, valid), shuffle (time-series), k-fold,
+dataset = TimeSeriesDataset(transform=DownSample(2))  # TODO Try different HZ
+print(dataset.__getitem__(0))
