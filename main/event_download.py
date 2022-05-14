@@ -3,24 +3,6 @@ from datetime import timedelta, datetime
 import pandas as pd
 
 
-def download_events():
-    cat = None
-    cur = start
-    while cur < end:
-        next_time = cur + step
-        if next_time > end:
-            next_time = end
-        cur_cat = client.get_events(starttime=cur, endtime=next_time,
-                                    minlatitude=-47.749, maxlatitude=-33.779, minlongitude=166.104,
-                                    maxlongitude=178.990)
-        if cat is None:
-            cat = cur_cat
-        else:
-            cat.extend(cur_cat)
-        cur = next_time
-    save_events(cat)
-
-
 def save_events(cat):
     event_ids = []
     event_times = []
@@ -52,6 +34,24 @@ def save_events(cat):
     df.to_pickle('./datasets/events.pkl')
 
 
+def download_events():
+    cat = None
+    cur = start
+    while cur < end:
+        next_time = cur + step
+        if next_time > end:
+            next_time = end
+        cur_cat = client.get_events(starttime=cur, endtime=next_time,
+                                    minlatitude=-47.749, maxlatitude=-33.779, minlongitude=166.104,
+                                    maxlongitude=178.990)
+        if cat is None:
+            cat = cur_cat
+        else:
+            cat.extend(cur_cat)
+        cur = next_time
+    save_events(cat)
+
+
 def download_stations():
     inventory = client.get_stations(starttime=start, endtime=end,
                                     minlatitude=-47.749, maxlatitude=-33.779, minlongitude=166.104,
@@ -74,5 +74,3 @@ client = FDSN_Client("GEONET")
 start = datetime(1999, 12, 31)
 end = datetime(2003, 12, 31)
 step = timedelta(days=50)
-# download_events()
-# download_stations()
