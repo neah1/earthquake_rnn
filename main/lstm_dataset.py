@@ -68,3 +68,32 @@ class DownSample:
         x = torch.tensor(np.array(res)).float().to(device)
         y = torch.tensor(y).float().to(device)
         return x, y
+
+
+class LossCounter:
+    def __init__(self, batch=1):
+        self.batch = batch
+        self.loss = 0.0
+        self.labels = []
+        self.predictions = []
+
+    def update(self, loss, labels, outputs):
+        self.loss += loss
+        self.labels.append(labels)
+        self.predictions.append(torch.round(outputs))
+
+    def get_results(self):
+        return torch.cat(self.labels), torch.cat(self.predictions)
+
+    def get_loss(self):
+        loss = self.loss / self.batch
+        self.loss = 0.0
+        return loss
+
+    def get_acc(self):
+        labels = torch.cat(self.labels)
+        predictions = torch.cat(self.predictions)
+        accuracy = (predictions == labels).sum().item() / labels.shape[0]
+        self.labels = []
+        self.predictions = []
+        return accuracy
