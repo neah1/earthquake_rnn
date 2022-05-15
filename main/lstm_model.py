@@ -9,29 +9,27 @@ from torch.utils.tensorboard import SummaryWriter
 
 from main.lstm_dataset import TimeSeriesDataset, DownSample, LSTM, device, LossCounter
 
-writer = SummaryWriter("./runs/" + datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
-
 # Training parameters
 n_epochs = 100
+n_freq = 3  # how many prints in each epoch
 batch_size = 50
-n_freq = 3
-test_size = 0.2
-valid_size = 0.2
-down_sample = 2
 learning_rate = 0.001
+hidden_size = 5
+frequency = 50  # HZ
+T_length = 25  # length of recording. current file is 30 seconds
+H_length = 3  # seconds before the earthquake.
 
 # Model parameters
-input_size = ceil(3001 / down_sample)
-hidden_size = 5
-num_classes = 1
-num_layers = 1
+valid_size = 0.2
+test_size = 0.2
 shuffle = True
 random_state = 42
+num_classes = 1
+num_layers = 1
 
-# TODO shuffle (time-series), k-fold, sort based on time.
-# TODO trim recording. Tutorial.
 # 0) Prepare data
-dataset = TimeSeriesDataset(transform=DownSample(down_sample))
+# TODO Format input timeseries. shuffle (time-series). k-fold. sort based on time.
+dataset = TimeSeriesDataset(transform=DownSample(frequency, T_length, H_length))
 x_i, idx_test, y_i, _ = train_test_split(range(len(dataset)), dataset.y, stratify=dataset.y, random_state=random_state,
                                          test_size=test_size)
 idx_train, idx_valid, _, _ = train_test_split(x_i, y_i, stratify=y_i, random_state=random_state,
@@ -44,19 +42,21 @@ test_split = Subset(dataset, idx_test)
 test_loader = DataLoader(test_split, batch_size=batch_size, shuffle=shuffle)
 
 # 1) Create model, loss and optimizer
-model = LSTM(input_size, hidden_size, num_classes, num_layers).to(device)
+model = LSTM((T_length * frequency), hidden_size, num_classes, num_layers).to(device)
 criterion = nn.BCELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-writer.add_graph(model, iter(test_loader).next()[0])
+writer = SummaryWriter("./runs/" + datetime.now().strftime("%d %b (%H-%M-%S)"))
+writer.add_graph(model, iter(train_loader).next()[0])
 
 # 2) Training loop
 n_total_steps = len(train_loader)
 n_steps = floor(n_total_steps / n_freq)
 run_counter = LossCounter(n_steps)
-train_counter = LossCounter(len(train_loader) + 1)
-valid_counter = LossCounter(len(valid_loader) + 1)
+train_counter = LossCounter(len(train_loader))
+valid_counter = LossCounter(len(valid_loader))
 
 for epoch in range(n_epochs):
+    run_counter.reset()
     for i, (inp, labels) in enumerate(train_loader):
         labels = labels.unsqueeze(1)
         outputs = model(inp)
@@ -64,21 +64,24 @@ for epoch in range(n_epochs):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+
         run_counter.update(loss.item(), labels, outputs)
         train_counter.update(loss.item(), labels, outputs)
+
         if (i + 1) % n_steps == 0:
             print(f'Epoch {epoch + 1}/{n_epochs}, step {i + 1}/{n_total_steps}, loss = {loss.item():.4f}')
             writer.add_scalar('training loss', run_counter.get_loss(), epoch * n_total_steps + i)
             writer.add_scalar('training accuracy', run_counter.get_acc(), epoch * n_total_steps + i)
+
     for i, (inp, labels) in enumerate(valid_loader):
         labels = labels.unsqueeze(1)
         outputs = model(inp)
         loss = criterion(outputs, labels)
         valid_counter.update(loss.item(), labels, outputs)
     writer.add_scalars('validation loss',
-                       {'train': train_counter.get_loss(), 'valid': train_counter.get_acc()}, epoch + 1)
+                       {'train': train_counter.get_loss(), 'valid': valid_counter.get_loss()}, epoch)
     writer.add_scalars('validation accuracy',
-                       {'train': valid_counter.get_loss(), 'valid': valid_counter.get_acc()}, epoch + 1)
+                       {'train': train_counter.get_acc(), 'valid': valid_counter.get_acc()}, epoch)
 
 # 3) Save results
 with torch.no_grad():
@@ -89,12 +92,13 @@ with torch.no_grad():
         test_counter.update(0, labels, outputs)
     labels, predictions = test_counter.get_results()
     writer.add_pr_curve('pr_curve', labels, predictions)
-    accuracy = test_counter.get_acc()
+    writer.flush()
 
+    accuracy = test_counter.get_acc()
     print(f'Accuracy = {accuracy:.4f}')
-    params = f"EPOCHS: {n_epochs}, FREQ: {n_freq}, BATCH: {batch_size}, LR: {learning_rate}, " \
-             f"VALID: {valid_size}, TEST: {test_size}, HZ: {100 / down_sample}, SEED: {random_state}, " \
-             f"SHUFFLE: {shuffle}, n_hidden: {hidden_size}, n_classes: {num_classes}, n_layers: {num_layers}, " \
+    params = f"EPOCHS: {n_epochs}, FREQ: {n_freq}, BATCH: {batch_size}, LR: {learning_rate}, HIDDEN: {hidden_size}, " \
+             f"HZ: {frequency}, T: {T_length}, H: {H_length}, VALID: {valid_size}, TEST: {test_size}, " \
+             f"SHUFFLE: {shuffle}, SEED: {random_state}, CLASSES: {num_classes}, LAYERS: {num_layers}, " \
              f"ACCURACY: {accuracy}. "
     writer.add_text('Parameters', str(params))
     writer.close()

@@ -1,3 +1,4 @@
+import sys
 from math import ceil
 import numpy as np
 import pandas as pd
@@ -10,6 +11,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 class LSTM(nn.Module):
+    # TODO Check parameters
     def __init__(self, input_size, hidden_size, num_classes, num_layers):
         super(LSTM, self).__init__()
         self.num_classes = num_classes
@@ -54,17 +56,23 @@ class TimeSeriesDataset(Dataset):
 
 
 class DownSample:
-    def __init__(self, factor):
-        self.factor = factor
-        self.signal = ceil(3001 / self.factor)
+    def __init__(self, frequency, T, H):
+        T = T * frequency
+        H = H * frequency
+        self.T = T
+        self.start = T + H
+        self.end = -H if H > 0 else None
+        self.factor = round(100 / frequency)
 
     def __call__(self, sample):
         x, y = sample
         res = []
         for val in x:
             val = val[::self.factor]
-            val = val[:self.signal]
+            val = val[-self.start:self.end]
             res.append(val)
+        if self.T != len(res[0]):
+            raise Exception(f'Length of recording is too short. W: {len(res[0])}, T: {self.T}.')
         x = torch.tensor(np.array(res)).float().to(device)
         y = torch.tensor(y).float().to(device)
         return x, y
@@ -77,10 +85,15 @@ class LossCounter:
         self.labels = []
         self.predictions = []
 
+    def reset(self):
+        self.loss = 0.0
+        self.labels = []
+        self.predictions = []
+
     def update(self, loss, labels, outputs):
         self.loss += loss
         self.labels.append(labels)
-        self.predictions.append(torch.round(outputs))
+        self.predictions.append(outputs)
 
     def get_results(self):
         return torch.cat(self.labels), torch.cat(self.predictions)
@@ -93,7 +106,7 @@ class LossCounter:
     def get_acc(self):
         labels = torch.cat(self.labels)
         predictions = torch.cat(self.predictions)
-        accuracy = (predictions == labels).sum().item() / labels.shape[0]
+        accuracy = (torch.round(predictions) == labels).sum().item() / labels.shape[0]
         self.labels = []
         self.predictions = []
         return accuracy
