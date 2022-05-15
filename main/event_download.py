@@ -1,6 +1,6 @@
-from obspy.clients.fdsn import Client as FDSN_Client
 from datetime import timedelta, datetime
 import pandas as pd
+from obspy.clients.fdsn import Client as FDSN_Client
 
 
 def save_events(cat):

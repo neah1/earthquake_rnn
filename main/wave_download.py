@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import os
-import sys
 
 import numpy as np
 import pandas as pd
@@ -109,12 +108,12 @@ threads_at_once = 100
 # Parameters
 folder = "active"
 if folder == "active":
-    events_df = pd.read_pickle('datasets/events_processed.pkl')
+    events_df = pd.read_pickle('datasets/sets/events_processed.pkl')
     H_event = 0
 else:
-    events_df = pd.read_pickle('datasets/events_normal.pkl')
+    events_df = pd.read_pickle('datasets/sets/events_normal.pkl')
     H_event = 2000
-stations_df = pd.read_pickle('./datasets/stations_processed.pkl')
+stations_df = pd.read_pickle('datasets/sets/stations_processed.pkl')
 
 # TODO Active 2000
 # TODO Normal 2000

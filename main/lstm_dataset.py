@@ -1,11 +1,38 @@
 from math import ceil
-
 import numpy as np
 import pandas as pd
 import torch
-from sklearn.preprocessing import Normalizer
+from torch import nn
+from torch.autograd import Variable
 from torch.utils.data import Dataset
-from torchvision.transforms import Compose
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+
+class LSTM(nn.Module):
+    def __init__(self, input_size, hidden_size, num_classes, num_layers):
+        super(LSTM, self).__init__()
+        self.num_classes = num_classes
+        self.num_layers = num_layers
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers, batch_first=True)
+        self.fc_1 = nn.Linear(hidden_size, 128)
+        self.relu = nn.ReLU()
+        self.fc_2 = nn.Linear(128, num_classes)
+        self.sigm = nn.Sigmoid()
+
+    def forward(self, x):
+        h_0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(device)  # hidden state
+        c_0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(device)  # internal state
+        output, (hn, cn) = self.lstm(x, (h_0, c_0))  # lstm with input, hidden, and internal state
+        hn = hn.view(-1, self.hidden_size)  # reshaping the data for Dense layer next
+        out = self.relu(hn)
+        out = self.fc_1(out)
+        out = self.relu(out)
+        out = self.fc_2(out)
+        out = self.sigm(out)
+        return out
 
 
 class TimeSeriesDataset(Dataset):
@@ -30,7 +57,6 @@ class DownSample:
     def __init__(self, factor):
         self.factor = factor
         self.signal = ceil(3001 / self.factor)
-        self.time_arr = np.linspace(0.0, 30.0, self.signal)
 
     def __call__(self, sample):
         x, y = sample
@@ -39,11 +65,6 @@ class DownSample:
             val = val[::self.factor]
             val = val[:self.signal]
             res.append(val)
-        res = np.array(res)
-        return torch.tensor(res), torch.tensor(y)
-
-
-# TODO Normalize, scale
-# TODO split (train, test, valid), shuffle (time-series), k-fold,
-dataset = TimeSeriesDataset(transform=DownSample(2))  # TODO Try different HZ
-print(dataset.__getitem__(0))
+        x = torch.tensor(np.array(res)).float().to(device)
+        y = torch.tensor(y).float().to(device)
+        return x, y
