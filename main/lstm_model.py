@@ -14,8 +14,8 @@ n_epochs = 100
 n_freq = 3  # how many prints in each epoch
 batch_size = 50
 learning_rate = 0.001
-hidden_size = 5
-frequency = 50  # HZ
+hidden_size = 2
+frequency = 100  # HZ
 T_length = 25  # length of recording. current file is 30 seconds
 H_length = 3  # seconds before the earthquake.
 

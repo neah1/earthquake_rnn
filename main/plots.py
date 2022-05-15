@@ -49,7 +49,7 @@ def plot_depth(events, name):
     del fig, ax
 
 
-def plot_waves(data, name, signal=3001):
+def plot_waves(data, name, signal=3000):
     time_arr = np.linspace(0.0, 30.0, signal)
     fig = plt.figure(figsize=(15, 6))
     ax = fig.add_subplot(1, 1, 1)
@@ -69,8 +69,8 @@ events_df = pd.read_pickle('./datasets/sets/events_processed.pkl')
 stations_df = pd.read_pickle('./datasets/sets/stations_processed.pkl')
 waves_df = pd.read_pickle('./datasets/sets/dataset.pkl')
 
-plot_stations(events_df, stations_df, 'NZ stations')
-plot_events(events_df, 'NZ earthquakes')
-plot_magnitude(events_df, 'event magnitudes')
-plot_depth(events_df, 'event depths')
-plot_waves(waves_df[0][0:5], 'waves')
+# plot_stations(events_df, stations_df, 'NZ stations')
+# plot_magnitude(events_df, 'Event magnitudes')
+# plot_events(events_df, 'NZ earthquakes')
+# plot_depth(events_df, 'event depths')
+plot_waves(waves_df[waves_df['label'] == 0].iloc[-2][0:3], 'waves')
