@@ -24,14 +24,14 @@ def plot_events(events, name):
 
 
 def plot_magnitude(events, name):
-    fig, ax = plt.subplots(figsize=(12, 10))
+    fig, ax = plt.subplots(figsize=(17, 10))
     w = 0.2
     n = np.ceil((events['magnitude'].max() - events['magnitude'].min()) / w)
     plt.hist(events['magnitude'], histtype='bar', ec='black', bins=int(n))
-    ax.tick_params(axis='both', labelsize=15)
-    ax.tick_params(axis='both', labelsize=15)
-    plt.ylabel('Number of Earthquakes', fontsize=50)
-    plt.xlabel('Magnitude (M)', fontsize=50)
+    ax.tick_params(axis='both', labelsize=30)
+    ax.tick_params(axis='both', labelsize=30)
+    plt.ylabel('Number of Earthquakes', fontsize=40)
+    plt.xlabel('Magnitude (M)', fontsize=40)
     plt.xlim([0, 5])
     plt.savefig(f'./plots/{name}.png', transparent=True)
     del fig, ax
@@ -65,7 +65,7 @@ def plot_waves(data, name, signal=3000):
     plt.savefig(f'./plots/{name}.png', transparent=True)
     del fig, ax
 
-events_df = pd.read_pickle('./datasets/sets/events_processed.pkl')
+events_df = pd.read_pickle('./datasets/sets/events_full.pkl')
 stations_df = pd.read_pickle('./datasets/sets/stations_processed.pkl')
 waves_df = pd.read_pickle('./datasets/sets/dataset.pkl')
 
@@ -73,4 +73,4 @@ waves_df = pd.read_pickle('./datasets/sets/dataset.pkl')
 # plot_magnitude(events_df, 'Event magnitudes')
 # plot_events(events_df, 'NZ earthquakes')
 # plot_depth(events_df, 'event depths')
-plot_waves(waves_df[waves_df['label'] == 0].iloc[-2][0:3], 'waves')
+# plot_waves(waves_df[waves_df['label'] == 0].iloc[-2][0:3], 'waves')

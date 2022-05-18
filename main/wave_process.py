@@ -1,3 +1,4 @@
+import sys
 from math import floor
 import pandas as pd
 from sklearn.preprocessing import Normalizer, StandardScaler
@@ -23,14 +24,15 @@ def combine_data(low, high, flat):
     normal['label'] = 0
     active['label'] = active.index
     active['label'] = active['label'].apply(lambda x: 0 if x in list(high_events) else 1)
-
     active_low = active[active['label'] == 1]
     active_high = active[active['label'] == 0]
-    low_size = len(active_low)
-    high_size = len(active_high)
-    flat_size = len(normal)
-    idx = min([low_size / low, high_size / high, flat_size / flat])
-    print(f'Low events: {low_size}, High events: {high_size}, Normal events: {flat_size}')
+
+    inf = float('inf')
+    low_size = inf if low == 0.0 else len(active_low) / low
+    high_size = inf if high == 0.0 else len(active_high) / high
+    flat_size = inf if flat == 0.0 else len(normal) / flat
+    idx = min([low_size, high_size, flat_size])
+    print(f'IDX: {idx}, Low events: {len(active_low)}, High events: {len(active_high)}, Normal events: {len(normal)}')
     return pd.concat([active_low[:floor(idx * low)], active_high[:floor(idx * high)], normal[:floor(idx * flat)]])
 
 
@@ -50,6 +52,6 @@ def normalize_scale(df):
 
 active = sanitize(pd.read_pickle('./datasets/active/waves_full.pkl'), 30)
 normal = sanitize(pd.read_pickle('./datasets/normal/waves_full.pkl'), 30)
-dataset = combine_data(low=0.5, high=0.25, flat=0.25)
+dataset = combine_data(low=0.5, high=0.0, flat=0.5)
 dataset = normalize_scale(dataset)
 dataset.to_pickle('./datasets/sets/dataset.pkl')
