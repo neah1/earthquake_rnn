@@ -40,7 +40,7 @@ def mass_data_downloader(start, stop, event_id, Station, Network='NZ', Channel='
         minimum_length=0.0,
         minimum_interstation_distance_in_m=100.0
     )
-    ev_str = str(event_id).replace(":", "_")
+    ev_str = str(event_id).replace(":", "_").split('/')[-1]
     try:
         mdl.download(domain, restrictions,
                      mseed_storage=f"./datasets/{folder}/waveforms/{ev_str}",
@@ -73,7 +73,7 @@ async def final_download():
 
 def process_waves():
     print(f'Processing {folder} waves')
-    path = f'./datasets/{folder}/waveforms/smi_nz.org.geonet/'
+    path = f'./datasets/{folder}/waveforms/'
     events = os.listdir(path)
     final_data = {}
     for j, event in enumerate(events):
@@ -115,11 +115,10 @@ else:
     H_event = 2000
 stations_df = pd.read_pickle('datasets/sets/stations_processed.pkl')
 
-# TODO Active 2000
-# TODO Normal 2000
-# TODO T_event 30
-T_event = 30
-events_df = events_df[500:2000]
+# TODO Active 0
+# TODO Normal 0
+T_event = 60
+events_df = events_df[0:500]
 
 asyncio.run(final_download())
 process_waves()

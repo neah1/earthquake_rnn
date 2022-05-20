@@ -17,6 +17,7 @@ learning_rate = 0.001
 hidden_size = 2
 frequency = 100  # HZ
 T_length = 25  # length of recording. current file is 30 seconds
+# TODO Try higher H
 H_length = 3  # seconds before the earthquake.
 
 # Model parameters
@@ -28,8 +29,8 @@ num_classes = 1
 num_layers = 1
 
 # 0) Prepare data
-# TODO Format input timeseries. shuffle (time-series). k-fold. sort based on time.
-dataset = TimeSeriesDataset(transform=DownSample(frequency, T_length, H_length))
+# TODO Format input timeseries.
+dataset = TimeSeriesDataset('./datasets/sets/dataset.pkl', transform=DownSample(frequency, T_length, H_length))
 x_i, idx_test, y_i, _ = train_test_split(range(len(dataset)), dataset.y, stratify=dataset.y, random_state=random_state,
                                          test_size=test_size)
 idx_train, idx_valid, _, _ = train_test_split(x_i, y_i, stratify=y_i, random_state=random_state,

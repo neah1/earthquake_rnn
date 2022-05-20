@@ -36,7 +36,6 @@ def combine_data(low, high, flat):
     return pd.concat([active_low[:floor(idx * low)], active_high[:floor(idx * high)], normal[:floor(idx * flat)]])
 
 
-# TODO Check for bugs
 def normalize_scale(df):
     temp = df['label'].copy()
     df = df.drop(columns=['label'])

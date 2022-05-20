@@ -11,7 +11,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 class LSTM(nn.Module):
-    # TODO Check parameters
+    # TODO Check LSTM parameters
     def __init__(self, input_size, hidden_size, num_classes, num_layers):
         super(LSTM, self).__init__()
         self.num_classes = num_classes
@@ -38,8 +38,8 @@ class LSTM(nn.Module):
 
 
 class TimeSeriesDataset(Dataset):
-    def __init__(self, transform=None):
-        xy = pd.read_pickle('./datasets/sets/dataset.pkl')
+    def __init__(self, file, transform=None):
+        xy = pd.read_pickle(file)
         self.x = xy.drop(columns=['label'])
         self.y = xy['label']
         self.n_samples = xy.shape[0]
