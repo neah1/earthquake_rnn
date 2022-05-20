@@ -7,6 +7,11 @@ import pandas as pd
 from obspy import read
 from obspy.clients.fdsn.mass_downloader import RectangularDomain, Restrictions, MassDownloader
 
+mdl = MassDownloader(providers=['GEONET'])
+logger = logging.getLogger("obspy.clients.fdsn.mass_downloader")
+logger.setLevel(logging.WARNING)
+threads_at_once = 100
+
 
 def mass_data_downloader(start, stop, event_id, Station, Network='NZ', Channel='HHZ', Location=10):
     """
@@ -50,25 +55,35 @@ def mass_data_downloader(start, stop, event_id, Station, Network='NZ', Channel='
         pass
 
 
-async def final_download_threaded(events, T, H):
+async def final_download_threaded(events, stations, T, H):
     tasks = []
     for i, event in events.iterrows():
         event_id = event.event_id
         event_time = event['time']
         start = event_time - T - H
         end = event_time - H
-        stations = ",".join([station.station_code for j, station in stations_df.iterrows()])
-        tasks.append(asyncio.to_thread(mass_data_downloader, start, end, event_id, stations))
+        station = ",".join([station.station_code for j, station in stations.iterrows()])
+        tasks.append(asyncio.to_thread(mass_data_downloader, start, end, event_id, station))
     await asyncio.gather(*tasks)
 
 
-async def final_download():
+async def final_download(start, end):
+    T_event = 60
+    stations_df = pd.read_pickle('datasets/sets/stations_processed.pkl')
+    if folder == "active":
+        events_df = pd.read_pickle('datasets/sets/events_processed.pkl')
+        H_event = 0
+    else:
+        events_df = pd.read_pickle('datasets/sets/events_normal.pkl')
+        H_event = 2000
+    events_df = events_df[start:end]
+
     print(f'Downloading {folder} waves')
     counter = threads_at_once
     for event_sublist in [events_df[x:x + threads_at_once] for x in range(0, len(events_df), threads_at_once)]:
         print(f'Current batch: {counter}/{len(events_df)}')
         counter += threads_at_once
-        await final_download_threaded(event_sublist, T_event, H_event)
+        await final_download_threaded(event_sublist, stations_df, T_event, H_event)
 
 
 def process_waves():
@@ -100,25 +115,7 @@ def process_waves():
     final_data.to_pickle(f'./datasets/{folder}/waves_full.pkl')
 
 
-mdl = MassDownloader(providers=['GEONET'])
-logger = logging.getLogger("obspy.clients.fdsn.mass_downloader")
-logger.setLevel(logging.WARNING)
-threads_at_once = 100
-
-# Parameters
-folder = "active"
-if folder == "active":
-    events_df = pd.read_pickle('datasets/sets/events_processed.pkl')
-    H_event = 0
-else:
-    events_df = pd.read_pickle('datasets/sets/events_normal.pkl')
-    H_event = 2000
-stations_df = pd.read_pickle('datasets/sets/stations_processed.pkl')
-
-# TODO Active 0
-# TODO Normal 0
-T_event = 60
-events_df = events_df[0:500]
-
-asyncio.run(final_download())
-process_waves()
+# TODO Active 6000 / Normal 3000
+folder = "normal"
+asyncio.run(final_download(3000, 6000))
+# process_waves()
