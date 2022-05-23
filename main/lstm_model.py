@@ -11,25 +11,24 @@ from main.lstm_dataset import TimeSeriesDataset, DownSample, LSTM, device, LossC
 
 # Training parameters
 n_epochs = 100
-n_freq = 3  # how many prints in each epoch
+n_freq = 3
 batch_size = 50
 learning_rate = 0.001
-hidden_size = 2
-frequency = 100  # HZ
-T_length = 25  # length of recording. current file is 30 seconds
-# TODO Try higher H
-H_length = 3  # seconds before the earthquake.
+frequency = 100
+T_length = 25
+H_length = 3
 
 # Model parameters
 valid_size = 0.2
 test_size = 0.2
 shuffle = True
 random_state = 42
+hidden_size = 2
 num_classes = 1
 num_layers = 1
 
 # 0) Prepare data
-# TODO Format input timeseries.
+# TODO PR Curve. Parallel. K-FOLD (might be unnecessary). SVM (80). Over-fitting strategies.
 dataset = TimeSeriesDataset('./datasets/sets/dataset.pkl', transform=DownSample(frequency, T_length, H_length))
 x_i, idx_test, y_i, _ = train_test_split(range(len(dataset)), dataset.y, stratify=dataset.y, random_state=random_state,
                                          test_size=test_size)

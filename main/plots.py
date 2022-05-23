@@ -65,7 +65,7 @@ def plot_waves(data, name, signal=3000):
     plt.savefig(f'./plots/{name}.png', transparent=True)
     del fig, ax
 
-events_df = pd.read_pickle('./datasets/sets/events_full.pkl')
+events_df = pd.read_pickle('./datasets/sets/old_events.pkl')
 stations_df = pd.read_pickle('./datasets/sets/stations_processed.pkl')
 waves_df = pd.read_pickle('./datasets/sets/dataset.pkl')
 

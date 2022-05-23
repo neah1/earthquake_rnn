@@ -14,7 +14,7 @@ def filter_normal(events):
         if (time - prev_time) > 5000:
             new_events.loc[len(new_events.index)] = event
         prev_time = time
-    new_events.to_pickle('datasets/events_temp.pkl')
+    new_events.to_pickle('./datasets/events_temp.pkl')
 
 
 def filter_events(events):
@@ -27,12 +27,13 @@ def sort_by_time(events):
     events.to_pickle('./datasets/events_temp.pkl')
 
 
+# TODO Select station by station.
 def filter_station(stations):
     selected_stations = ['BFZ', 'BKZ', 'DCZ', 'DSZ', 'EAZ', 'HIZ', 'JCZ', 'KHZ', 'KNZ', 'KUZ', 'LBZ', 'LTZ', 'MLZ',
                          'MQZ', 'MRZ', 'MSZ', 'MWZ', 'MXZ', 'NNZ', 'ODZ', 'OPRZ', 'OUZ', 'PUZ', 'PXZ', 'QRZ', 'RPZ',
                          'SYZ', 'THZ', 'TOZ', 'TSZ', 'TUZ', 'URZ', 'VRZ', 'WCZ', 'WHZ', 'WIZ', 'WKZ', 'WVZ']
     new_stations = stations.loc[stations.station_code.isin(selected_stations)]
-    new_stations.to_pickle('datasets/stations_temp.pkl')
+    new_stations.to_pickle('./datasets/stations_temp.pkl')
 
 
 events_df = pd.read_pickle('./datasets/sets/events_processed.pkl')

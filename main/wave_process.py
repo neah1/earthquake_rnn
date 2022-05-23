@@ -1,7 +1,39 @@
-import sys
+import os
 from math import floor
+
+import numpy as np
 import pandas as pd
+from obspy import read
 from sklearn.preprocessing import Normalizer, StandardScaler
+
+
+def process_waves(folder):
+    print(f'Processing {folder} waves')
+    path = f'./datasets/{folder}/waveforms/'
+    events = os.listdir(path)
+    final_data = {}
+    for j, event in enumerate(events):
+        if j % 100 == 0:
+            print(f'Current batch: {j}/{len(events)}')
+        cur_dir = path + event
+        station_files = os.listdir(cur_dir)
+        station_data_arr = {}
+        for station in station_files:
+            station_name = station.split('.')[1]
+            try:
+                file_name = cur_dir + '/' + station
+                station_data = np.array(read(file_name)[0].data)
+            except Exception as e:
+                print(f'Event: {event}, Station: {station_name}. Error: {e}')
+                continue
+            if min(station_data) == -14822981 or max(station_data) == -14822981:
+                print('Corrupted data')
+                continue
+            else:
+                station_data_arr[station_name] = station_data
+        final_data[event] = station_data_arr
+    final_data = pd.DataFrame(final_data).transpose()
+    final_data.to_pickle(f'./datasets/{folder}/waves_full.pkl')
 
 
 def sanitize(df, frames):
@@ -19,7 +51,7 @@ def sanitize(df, frames):
 
 
 def combine_data(low, high, flat):
-    events = pd.read_pickle('datasets/sets/events_processed.pkl')
+    events = pd.read_pickle('./datasets/sets/events_processed.pkl')
     high_events = events[events['magnitude'] > 2.5]['event_id'].apply(lambda x: x.split('/')[1])
     normal['label'] = 0
     active['label'] = active.index
@@ -49,8 +81,10 @@ def normalize_scale(df):
     return df
 
 
-active = sanitize(pd.read_pickle('./datasets/active/waves_full.pkl'), 30)
-normal = sanitize(pd.read_pickle('./datasets/normal/waves_full.pkl'), 30)
+process_waves('active')
+process_waves('normal')
+active = sanitize(pd.read_pickle('./datasets/active/waves_full.pkl'), 60)
+normal = sanitize(pd.read_pickle('./datasets/normal/waves_full.pkl'), 60)
 dataset = combine_data(low=0.5, high=0.0, flat=0.5)
 dataset = normalize_scale(dataset)
 dataset.to_pickle('./datasets/sets/dataset.pkl')
