@@ -19,7 +19,7 @@ def sanitize(df, frames):
 
 
 def combine_data(low, high, flat):
-    events = pd.read_pickle('datasets/sets/events_processed.pkl')
+    events = pd.read_pickle('./datasets/sets/events_processed.pkl')
     high_events = events[events['magnitude'] > 2.5]['event_id'].apply(lambda x: x.split('/')[1])
     normal['label'] = 0
     active['label'] = active.index

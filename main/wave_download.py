@@ -13,19 +13,13 @@ logger.setLevel(logging.WARNING)
 threads_at_once = 100
 
 
+# TODO Select channel.
 def mass_data_downloader(start, stop, event_id, Station, Network='NZ', Channel='HHZ', Location=10):
     """
-    This function uses the FDSN mass data downloader to automatically download
-    data from the XH network deployed on the RIS from Nov 2014 - Nov 2016.
-    More information on the Obspy mass downloader available at:
     https://docs.obspy.org/packages/autogen/obspy.clients.fdsn.mass_downloader.html
-    Inputs:
-    start: "YYYYMMDD"
-    stop:  "YYYYMMDD"
     Network: 2-character FDSN network code
     Station: 2-character station code
     Channel: 3-character channel code
-    Location: 10.
     """
     domain = RectangularDomain(
         minlatitude=-47.749,
@@ -69,12 +63,12 @@ async def final_download_threaded(events, stations, T, H):
 
 async def final_download(start, end):
     T_event = 60
-    stations_df = pd.read_pickle('datasets/sets/stations_processed.pkl')
+    stations_df = pd.read_pickle('./datasets/sets/stations_processed.pkl')
     if folder == "active":
-        events_df = pd.read_pickle('datasets/sets/events_processed.pkl')
+        events_df = pd.read_pickle('./datasets/sets/events_processed.pkl')
         H_event = 0
     else:
-        events_df = pd.read_pickle('datasets/sets/events_normal.pkl')
+        events_df = pd.read_pickle('./datasets/sets/events_normal.pkl')
         H_event = 2000
     events_df = events_df[start:end]
 
@@ -115,7 +109,7 @@ def process_waves():
     final_data.to_pickle(f'./datasets/{folder}/waves_full.pkl')
 
 
-# TODO Active 6000 / Normal 3000
-folder = "normal"
-asyncio.run(final_download(3000, 6000))
-# process_waves()
+# Active 10k / Normal 10k
+folder = "active"
+# asyncio.run(final_download(10000, 10000))
+process_waves()
