@@ -28,7 +28,7 @@ num_classes = 1
 num_layers = 1
 
 # 0) Prepare data
-# TODO PR Curve. K-FOLD (might be unnecessary). SVM (80). Over-fitting strategies. TQDM.
+# TODO PR Curve. Parallel. K-FOLD (might be unnecessary). SVM (80). Over-fitting strategies.
 dataset = TimeSeriesDataset('./datasets/sets/dataset.pkl', transform=DownSample(frequency, T_length, H_length))
 x_i, idx_test, y_i, _ = train_test_split(range(len(dataset)), dataset.y, stratify=dataset.y, random_state=random_state,
                                          test_size=test_size)

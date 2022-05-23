@@ -3,6 +3,4 @@ import pandas as pd
 
 temp = pd.read_pickle('./datasets/sets/events_processed.pkl')
 print(temp.shape)
-tt = temp.iloc[-1]
-print(tt.time)
 
