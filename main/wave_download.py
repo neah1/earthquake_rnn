@@ -1,3 +1,4 @@
+import sys
 import asyncio
 import logging
 import pandas as pd
@@ -77,5 +78,8 @@ async def final_download(folder, start, stop):
 
 
 # Active/Normal 10k
-asyncio.run(final_download('active', 0, 10000))
-asyncio.run(final_download('normal', 0, 10000))
+a = int(sys.argv[1])
+b = a + 1000
+print(f'Downloading from {a} to {b}')
+asyncio.run(final_download('active', a, b))
+asyncio.run(final_download('normal', a, b))

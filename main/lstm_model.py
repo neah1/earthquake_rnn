@@ -45,7 +45,7 @@ test_loader = DataLoader(test_split, batch_size=batch_size, shuffle=shuffle)
 model = LSTM((T_length * frequency), hidden_size, num_classes, num_layers).to(device)
 criterion = nn.BCELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-writer = SummaryWriter("./runs/" + datetime.now().strftime("%d %b (%H-%M-%S)"))
+writer = SummaryWriter("./datasets/runs/" + datetime.now().strftime("%d %b (%H-%M-%S)"))
 writer.add_graph(model, iter(train_loader).next()[0])
 
 # 2) Training loop

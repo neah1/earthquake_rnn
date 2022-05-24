@@ -10,7 +10,7 @@ def plot_stations(events, stations, name):
     ax = countries[countries["name"] == "New Zealand"].plot(color="lightgrey", ax=ax)
     events.plot(x="longitude", y="latitude", kind="scatter", s=0.1, ax=ax)
     stations.plot(x="longitude", y="latitude", kind="scatter", ax=ax, color='yellow')
-    plt.savefig(f'./plots/{name}.png', transparent=True)
+    plt.savefig(f'./datasets/plots/{name}.png', transparent=True)
     del fig, ax
 
 
@@ -19,7 +19,7 @@ def plot_events(events, name):
     countries = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
     ax = countries[countries["name"] == "New Zealand"].plot(color="lightgrey", ax=ax)
     events.plot(x="longitude", y="latitude", kind="scatter", s=0.1, ax=ax)
-    plt.savefig(f'./plots/{name}.png', transparent=True)
+    plt.savefig(f'./datasets/plots/{name}.png', transparent=True)
     del fig, ax
 
 
@@ -33,7 +33,7 @@ def plot_magnitude(events, name):
     plt.ylabel('Number of Earthquakes', fontsize=40)
     plt.xlabel('Magnitude (M)', fontsize=40)
     plt.xlim([0, 5])
-    plt.savefig(f'./plots/{name}.png', transparent=True)
+    plt.savefig(f'./datasets/plots/{name}.png', transparent=True)
     del fig, ax
 
 
@@ -45,7 +45,7 @@ def plot_depth(events, name):
     plt.ylabel('Number of Earthquakes', fontsize=20)
     plt.xlabel('Depth (km)', fontsize=20)
     plt.xlim([0, 500])
-    plt.savefig(f'./plots/{name}.png', transparent=True)
+    plt.savefig(f'./datasets/plots/{name}.png', transparent=True)
     del fig, ax
 
 
@@ -62,7 +62,7 @@ def plot_waves(data, name, signal=3000):
     plt.ylabel('Velocity HZ', fontsize=20)
     plt.xlabel('Timestep', fontsize=20)
     plt.xlim([0, 30])
-    plt.savefig(f'./plots/{name}.png', transparent=True)
+    plt.savefig(f'./datasets/plots/{name}.png', transparent=True)
     del fig, ax
 
 events_df = pd.read_pickle('./datasets/sets/old_events.pkl')

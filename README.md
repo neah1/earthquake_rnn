@@ -1,5 +1,5 @@
 # earthquake_rnn
-# tensorboard --logdir=main/runs
+# tensorboard --logdir=main/datasets/runs
 
 continuous time-series (cross-validation is different), might contradict causality when shuffling.
 instead, take all data, keep 20 percent for testing/validation, u can shuffle the training data
