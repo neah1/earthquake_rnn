@@ -60,15 +60,14 @@ async def final_download_threaded(folder, events, stations, T, H):
 
 async def final_download(folder, start, stop):
     T_event = 60
-    stations_df = pd.read_pickle('./datasets/sets/stations_processed.pkl')
+    stations_df = pd.read_pickle('datasets/sets/stations.pkl')
     if folder == "active":
-        events_df = pd.read_pickle('./datasets/sets/events_processed.pkl')
+        events_df = pd.read_pickle('datasets/sets/events.pkl')
         H_event = 0
     else:
-        events_df = pd.read_pickle('./datasets/sets/events_normal.pkl')
+        events_df = pd.read_pickle('datasets/sets/events_flat.pkl')
         H_event = 2000
     events_df = events_df[start:stop]
-
     print(f'Downloading {folder} waves')
     counter = threads_at_once
     for event_sublist in [events_df[x:x + threads_at_once] for x in range(0, len(events_df), threads_at_once)]:
@@ -78,8 +77,8 @@ async def final_download(folder, start, stop):
 
 
 # Active/Normal 10k
-a = int(sys.argv[1])
-b = a + 1000
+a = 10 * 1000
+b = 11 * 1000
 print(f'Downloading from {a} to {b}')
 asyncio.run(final_download('active', a, b))
 asyncio.run(final_download('normal', a, b))

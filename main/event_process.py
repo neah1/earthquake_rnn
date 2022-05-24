@@ -36,5 +36,5 @@ def filter_station(stations):
     new_stations.to_pickle('./datasets/stations_temp.pkl')
 
 
-events_df = pd.read_pickle('./datasets/sets/events_processed.pkl')
-stations_df = pd.read_pickle('./datasets/sets/stations_processed.pkl')
+events_df = pd.read_pickle('datasets/sets/events.pkl')
+stations_df = pd.read_pickle('datasets/sets/stations.pkl')

@@ -1,35 +1,33 @@
 from datetime import datetime
-from math import ceil, floor
-
+from math import floor
 import torch
 from sklearn.model_selection import train_test_split
 from torch import nn
 from torch.utils.data import Subset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
-
 from main.lstm_dataset import TimeSeriesDataset, DownSample, LSTM, device, LossCounter
 
 # Training parameters
+T_length = 25
+H_length = 3
+HZ = 100
 n_epochs = 100
 n_freq = 3
 batch_size = 50
+hidden_size = 2
 learning_rate = 0.001
-frequency = 100
-T_length = 25
-H_length = 3
 
 # Model parameters
 valid_size = 0.2
 test_size = 0.2
-shuffle = True
 random_state = 42
-hidden_size = 2
 num_classes = 1
 num_layers = 1
+shuffle = True
 
 # 0) Prepare data
 # TODO PR Curve. Parallel. K-FOLD (might be unnecessary). SVM (80). Over-fitting strategies.
-dataset = TimeSeriesDataset('./datasets/sets/dataset.pkl', transform=DownSample(frequency, T_length, H_length))
+dataset = TimeSeriesDataset('./datasets/sets/dataset.pkl', transform=DownSample(HZ, T_length, H_length))
 x_i, idx_test, y_i, _ = train_test_split(range(len(dataset)), dataset.y, stratify=dataset.y, random_state=random_state,
                                          test_size=test_size)
 idx_train, idx_valid, _, _ = train_test_split(x_i, y_i, stratify=y_i, random_state=random_state,
@@ -42,7 +40,7 @@ test_split = Subset(dataset, idx_test)
 test_loader = DataLoader(test_split, batch_size=batch_size, shuffle=shuffle)
 
 # 1) Create model, loss and optimizer
-model = LSTM((T_length * frequency), hidden_size, num_classes, num_layers).to(device)
+model = LSTM((T_length * HZ), hidden_size, num_classes, num_layers).to(device)
 criterion = nn.BCELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 writer = SummaryWriter("./datasets/runs/" + datetime.now().strftime("%d %b (%H-%M-%S)"))
@@ -93,12 +91,10 @@ with torch.no_grad():
     labels, predictions = test_counter.get_results()
     writer.add_pr_curve('pr_curve', labels, predictions)
     writer.flush()
-
     accuracy = test_counter.get_acc()
     print(f'Accuracy = {accuracy:.4f}')
-    params = f"EPOCHS: {n_epochs}, FREQ: {n_freq}, BATCH: {batch_size}, LR: {learning_rate}, HIDDEN: {hidden_size}, " \
-             f"HZ: {frequency}, T: {T_length}, H: {H_length}, VALID: {valid_size}, TEST: {test_size}, " \
-             f"SHUFFLE: {shuffle}, SEED: {random_state}, CLASSES: {num_classes}, LAYERS: {num_layers}, " \
-             f"ACCURACY: {accuracy}. "
+    params = f"ACCURACY: {accuracy}, T: {T_length}, H: {H_length}, HZ: {HZ}, EPOCHS: {n_epochs}, " \
+             f"FREQUENCY: {n_freq}, BATCH: {batch_size}, HIDDEN: {hidden_size}, LR: {learning_rate}, " \
+             f"VALID: {valid_size}, TEST: {test_size}, SEED: {random_state}."
     writer.add_text('Parameters', str(params))
     writer.close()

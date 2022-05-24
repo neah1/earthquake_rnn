@@ -10,8 +10,8 @@ from torch.utils.data import Dataset
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
+# TODO Check LSTM parameters
 class LSTM(nn.Module):
-    # TODO Check LSTM parameters
     def __init__(self, input_size, hidden_size, num_classes, num_layers):
         super(LSTM, self).__init__()
         self.num_classes = num_classes

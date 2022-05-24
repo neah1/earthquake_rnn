@@ -35,6 +35,22 @@ def process_waves(folder):
     final_data.to_pickle(f'./datasets/{folder}/waves_temp.pkl')
 
 
+def sanitize(folder, frames):
+    pd.options.mode.chained_assignment = None
+    file = f'./datasets/{folder}/waves_temp.pkl'
+    df = pd.read_pickle(file)
+    print(f'Before {folder}: {df.shape}')
+    frames = frames * 100
+    df = df.dropna()
+    for i, row in df.iterrows():
+        if (row.str.len() < frames).any():
+            df = df.drop(i)
+            continue
+        df.loc[i] = row.apply(lambda x: x[-frames:])
+    print(f'After {folder}: {df.shape}')
+    df.to_pickle(file)
+
+
 def join_waves(folder):
     print(f'Joining {folder} waves')
     temp = f'./datasets/{folder}/waves_temp.pkl'
@@ -49,26 +65,11 @@ def join_waves(folder):
         os.rename(temp, full)
 
 
-def sanitize(folder, frames):
-    pd.options.mode.chained_assignment = None
-    df = pd.read_pickle(f'./datasets/{folder}/waves_full.pkl')
-    print(f'Before {folder}: {df.shape}')
-    frames = frames * 100
-    df = df.dropna()
-    for i, row in df.iterrows():
-        if (row.str.len() < frames).any():
-            df = df.drop(i)
-            continue
-        df.loc[i] = row.apply(lambda x: x[-frames:])
-    print(f'After {folder}: {df.shape}')
-    df.to_pickle(f'./datasets/{folder}/waves_full.pkl')
-
-
 def combine_data(low, high, flat):
     print('Combining data')
     active = pd.read_pickle('./datasets/active/waves_full.pkl')
     normal = pd.read_pickle('./datasets/normal/waves_full.pkl')
-    events = pd.read_pickle('./datasets/sets/events_processed.pkl')
+    events = pd.read_pickle('datasets/sets/events.pkl')
 
     high_events = events[events['magnitude'] > 2.5]['event_id'].apply(lambda x: x.split('/')[1])
     normal['label'] = 0
@@ -84,12 +85,12 @@ def combine_data(low, high, flat):
     idx = min([low_size, high_size, flat_size])
     print(f'IDX: {idx}, Low events: {len(active_low)}, High events: {len(active_high)}, Normal events: {len(normal)}')
     df = pd.concat([active_low[:floor(idx * low)], active_high[:floor(idx * high)], normal[:floor(idx * flat)]])
-    df.to_pickle('./datasets/sets/dataset.pkl')
+    df.to_pickle('./datasets/sets/dataset_full.pkl')
 
 
 def normalize_scale(scale, normalize):
     print('Normalizing dataset')
-    df = pd.read_pickle('./datasets/sets/dataset.pkl')
+    df = pd.read_pickle('./datasets/sets/dataset_full.pkl')
     temp = df['label'].copy()
     df = df.drop(columns=['label'])
     if scale:
@@ -103,6 +104,7 @@ def normalize_scale(scale, normalize):
     df['label'] = temp
     df.to_pickle('./datasets/sets/dataset.pkl')
 
+
 # process_waves('active')
 # join_waves('active')
 # sanitize('active', 60)
@@ -111,6 +113,5 @@ def normalize_scale(scale, normalize):
 # join_waves('normal')
 # sanitize('normal', 60)
 
-combine_data(low=0.5, high=0.0, flat=0.5)
-
-# normalize_scale(scale=True, normalize=True)
+# combine_data(low=0.5, high=0.0, flat=0.5)
+normalize_scale(scale=True, normalize=True)
