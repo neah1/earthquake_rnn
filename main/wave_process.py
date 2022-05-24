@@ -106,12 +106,13 @@ def normalize_scale(scale, normalize):
 
 
 # process_waves('active')
-# join_waves('active')
-# sanitize('active', 60)
-
 # process_waves('normal')
-# join_waves('normal')
+
+# sanitize('active', 60)
 # sanitize('normal', 60)
 
+# join_waves('active')
+# join_waves('normal')
+
 # combine_data(low=0.5, high=0.0, flat=0.5)
-normalize_scale(scale=True, normalize=True)
+# normalize_scale(scale=True, normalize=True)

@@ -27,7 +27,7 @@ def sort_by_time(events):
     events.to_pickle('./datasets/events_temp.pkl')
 
 
-# TODO Select station by station.
+# TODO Select stations.
 def filter_station(stations):
     selected_stations = ['BFZ', 'BKZ', 'DCZ', 'DSZ', 'EAZ', 'HIZ', 'JCZ', 'KHZ', 'KNZ', 'KUZ', 'LBZ', 'LTZ', 'MLZ',
                          'MQZ', 'MRZ', 'MSZ', 'MWZ', 'MXZ', 'NNZ', 'ODZ', 'OPRZ', 'OUZ', 'PUZ', 'PXZ', 'QRZ', 'RPZ',

@@ -10,7 +10,6 @@ from torch.utils.data import Dataset
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-# TODO Check LSTM parameters
 class LSTM(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes, num_layers):
         super(LSTM, self).__init__()
@@ -110,3 +109,21 @@ class LossCounter:
         self.labels = []
         self.predictions = []
         return accuracy
+
+
+class EarlyStopper:
+    def __init__(self, patience):
+        self.patience = patience
+        self.trigger = 0
+        self.last = 1000
+
+    def update(self, current):
+        if current > self.last:
+            self.trigger += 1
+        else:
+            self.trigger = 0
+        self.last = current
+        return self.trigger >= self.patience
+
+
+

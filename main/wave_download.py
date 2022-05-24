@@ -1,4 +1,3 @@
-import sys
 import asyncio
 import logging
 import pandas as pd
@@ -10,7 +9,7 @@ logger.setLevel(logging.WARNING)
 threads_at_once = 100
 
 
-# TODO Select channel.
+# TODO Select channels.
 def mass_data_downloader(folder, start, stop, event_id, station, Network='NZ', Channel='HHZ', Location=10):
     """
     https://docs.obspy.org/packages/autogen/obspy.clients.fdsn.mass_downloader.html
@@ -77,8 +76,8 @@ async def final_download(folder, start, stop):
 
 
 # Active/Normal 10k
-a = 10 * 1000
-b = 11 * 1000
+a = 10000
+b = 11000
 print(f'Downloading from {a} to {b}')
 asyncio.run(final_download('active', a, b))
 asyncio.run(final_download('normal', a, b))
