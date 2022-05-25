@@ -2,6 +2,11 @@ from datetime import timedelta, datetime
 import pandas as pd
 from obspy.clients.fdsn import Client as FDSN_Client
 
+client = FDSN_Client("GEONET")
+start = datetime(2000, 12, 31)
+end = datetime(2000, 12, 31)
+step = timedelta(days=50)
+
 
 def save_events(cat):
     event_ids = []
@@ -27,7 +32,7 @@ def save_events(cat):
     data_map = {'event_id': event_ids, 'time': event_times, 'latitude': latitudes, 'longitude': longitudes,
                 'magnitude': magnitudes, 'depth': depths}
     df = pd.DataFrame(data=data_map)
-    df.to_pickle('./datasets/events_temp.pkl')
+    df.to_pickle('../datasets/sets/events_temp.pkl')
 
 
 def download_events():
@@ -62,10 +67,4 @@ def download_stations():
         sites.append(station.site.name)
     data_map = {'station_code': stations, 'longitude': longitudes, 'latitude': latitudes, 'site': sites}
     df = pd.DataFrame(data=data_map)
-    df.to_pickle('./datasets/stations_temp.pkl')
-
-
-client = FDSN_Client("GEONET")
-start = datetime(2000, 12, 31)
-end = datetime(2000, 12, 31)
-step = timedelta(days=50)
+    df.to_pickle('../datasets/sets/stations_temp.pkl')

@@ -9,7 +9,6 @@ logger.setLevel(logging.WARNING)
 threads_at_once = 100
 
 
-# TODO Select channels.
 def mass_data_downloader(folder, start, stop, event_id, station, Network='NZ', Channel='HHZ', Location=10):
     """
     https://docs.obspy.org/packages/autogen/obspy.clients.fdsn.mass_downloader.html
@@ -38,8 +37,8 @@ def mass_data_downloader(folder, start, stop, event_id, station, Network='NZ', C
     ev_str = str(event_id).replace(":", "_").split('/')[-1]
     try:
         mdl.download(domain, restrictions,
-                     mseed_storage=f"./datasets/{folder}/waveforms/{ev_str}",
-                     stationxml_storage=f"./datasets/{folder}/stations")
+                     mseed_storage=f"../datasets/{folder}/waveforms/{ev_str}",
+                     stationxml_storage=f"../datasets/{folder}/stations")
     except Exception as e:
         print(f'Event: {ev_str}. Error: {e}')
         pass
@@ -59,12 +58,12 @@ async def final_download_threaded(folder, events, stations, T, H):
 
 async def final_download(folder, start, stop):
     T_event = 60
-    stations_df = pd.read_pickle('datasets/sets/stations.pkl')
+    stations_df = pd.read_pickle('../datasets/sets/stations.pkl')
     if folder == "active":
-        events_df = pd.read_pickle('datasets/sets/events.pkl')
+        events_df = pd.read_pickle('../datasets/sets/events.pkl')
         H_event = 0
     else:
-        events_df = pd.read_pickle('datasets/sets/events_flat.pkl')
+        events_df = pd.read_pickle('../datasets/sets/normal.pkl')
         H_event = 2000
     events_df = events_df[start:stop]
     print(f'Downloading {folder} waves')

@@ -1,4 +1,5 @@
 import os
+import sys
 from math import floor
 
 import numpy as np
@@ -7,7 +8,7 @@ from obspy import read
 from sklearn.preprocessing import Normalizer, StandardScaler
 
 
-def process_waves(folder):
+def parse_waves(folder):
     print(f'Processing {folder} waves')
     path = f'./datasets/{folder}/waveforms/'
     events = os.listdir(path)
@@ -32,12 +33,12 @@ def process_waves(folder):
                 station_data_arr[station_name] = station_data
         final_data[event] = station_data_arr
     final_data = pd.DataFrame(final_data).transpose()
-    final_data.to_pickle(f'./datasets/{folder}/waves_temp.pkl')
+    final_data.to_pickle(f'./datasets/sets/waves_temp_{folder}.pkl')
 
 
 def sanitize(folder, frames):
     pd.options.mode.chained_assignment = None
-    file = f'./datasets/{folder}/waves_temp.pkl'
+    file = f'./datasets/sets/waves_temp_{folder}.pkl'
     df = pd.read_pickle(file)
     print(f'Before {folder}: {df.shape}')
     frames = frames * 100
@@ -53,8 +54,8 @@ def sanitize(folder, frames):
 
 def join_waves(folder):
     print(f'Joining {folder} waves')
-    temp = f'./datasets/{folder}/waves_temp.pkl'
-    full = f'./datasets/{folder}/waves_full.pkl'
+    temp = f'./datasets/sets/waves_temp_{folder}.pkl'
+    full = f'./datasets/sets/waves_{folder}.pkl'
     if os.path.exists(full):
         df_temp = pd.read_pickle(temp)
         df_full = pd.read_pickle(full)
@@ -65,32 +66,37 @@ def join_waves(folder):
         os.rename(temp, full)
 
 
-def combine_data(low, high, flat):
-    print('Combining data')
-    active = pd.read_pickle('./datasets/active/waves_full.pkl')
-    normal = pd.read_pickle('./datasets/normal/waves_full.pkl')
-    events = pd.read_pickle('datasets/sets/events.pkl')
+def process_waves(folders):
+    for folder in folders:
+        parse_waves(folder)
+        sanitize(folder, 60)
+        join_waves(folder)
 
-    high_events = events[events['magnitude'] > 2.5]['event_id'].apply(lambda x: x.split('/')[1])
+
+def create_dataset(low, high, flat, idx=None):
+    print('Combining data')
+    active = pd.read_pickle('./datasets/sets/waves_active.pkl')
+    normal = pd.read_pickle('./datasets/sets/waves_normal.pkl')
+    events = pd.read_pickle('./datasets/sets/events.pkl')
+    low_events = events['event_id'].apply(lambda x: x.split('/')[-1])
     normal['label'] = 0
     active['label'] = active.index
-    active['label'] = active['label'].apply(lambda x: 0 if x in list(high_events) else 1)
+    active['label'] = active['label'].apply(lambda x: 1 if x in list(low_events) else 0)
     active_low = active[active['label'] == 1]
     active_high = active[active['label'] == 0]
-
-    inf = float('inf')
-    low_size = inf if low == 0.0 else len(active_low) / low
-    high_size = inf if high == 0.0 else len(active_high) / high
-    flat_size = inf if flat == 0.0 else len(normal) / flat
-    idx = min([low_size, high_size, flat_size])
+    if not idx:
+        low_size = float('inf') if low == 0.0 else len(active_low) / low
+        high_size = float('inf') if high == 0.0 else len(active_high) / high
+        flat_size = float('inf') if flat == 0.0 else len(normal) / flat
+        idx = min([low_size, high_size, flat_size])
     print(f'IDX: {idx}, Low events: {len(active_low)}, High events: {len(active_high)}, Normal events: {len(normal)}')
     df = pd.concat([active_low[:floor(idx * low)], active_high[:floor(idx * high)], normal[:floor(idx * flat)]])
-    df.to_pickle('./datasets/sets/dataset_full.pkl')
+    df.to_pickle(f'./datasets/sets/dataset_{idx}.pkl')
 
 
-def normalize_scale(scale, normalize):
+def normalize_scale(file, scale, normalize):
     print('Normalizing dataset')
-    df = pd.read_pickle('./datasets/sets/dataset_full.pkl')
+    df = pd.read_pickle(f'./datasets/sets/{file}.pkl')
     temp = df['label'].copy()
     df = df.drop(columns=['label'])
     if scale:
@@ -102,17 +108,11 @@ def normalize_scale(scale, normalize):
         scaler.fit(df.values.flatten().tolist())
         df = df.apply(lambda x: x.apply(lambda y: scaler.transform(y.reshape(1, -1))[0]))
     df['label'] = temp
-    df.to_pickle('./datasets/sets/dataset.pkl')
+    df.to_pickle(f'./datasets/sets/{file}_temp.pkl')
 
 
-# process_waves('active')
-# process_waves('normal')
-
-# sanitize('active', 60)
-# sanitize('normal', 60)
-
-# join_waves('active')
-# join_waves('normal')
-
-# combine_data(low=0.5, high=0.0, flat=0.5)
-# normalize_scale(scale=True, normalize=True)
+# TODO Normalize per station.
+# TODO Process 4-5k events. Process raw 10k.
+# TODO Select stations. Select channels. Over-fitting.
+# create_dataset(low=0.5, high=0.0, flat=0.5, idx=int(sys.argv[1]))
+normalize_scale('dataset_10k_raw', scale=True, normalize=True)
