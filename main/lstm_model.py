@@ -8,7 +8,6 @@ from torch.utils.data import Dataset
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-# TODO Change parameters.
 class LSTM(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes, num_layers):
         super(LSTM, self).__init__()

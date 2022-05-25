@@ -9,22 +9,13 @@ from torch.utils.tensorboard import SummaryWriter
 from lstm_model import TimeSeriesDataset, DownSample, LSTM, device, LossCounter, EarlyStopper
 
 # Training parameters
-if len(sys.argv) > 1:
-    file = sys.argv[1]
-    T_length = int(sys.argv[2])
-    H_length = int(sys.argv[3])
-    HZ = int(sys.argv[4])
-    n_epochs = int(sys.argv[5])
-    patience = int(sys.argv[6])
-    learning_rate = float(sys.argv[7])
-else:
-    file = 'dataset_5k'
-    T_length = 30
-    H_length = 3
-    HZ = 50
-    n_epochs = 100
-    patience = 5
-    learning_rate = 0.001
+file = sys.argv[1]
+T_length = int(sys.argv[2])
+H_length = int(sys.argv[3])
+HZ = int(sys.argv[4])
+n_epochs = int(sys.argv[5])
+patience = int(sys.argv[6])
+learning_rate = float(sys.argv[7])
 
 # Model parameters
 random_state = 42
@@ -37,7 +28,7 @@ name = f'{file}_T{T_length}_H{H_length}_HZ{HZ}_E{n_epochs}_PT{patience}_LR{learn
 print(name)
 
 # 0) Prepare data
-dataset = TimeSeriesDataset(f'./datasets/sets/{file}.pkl', transform=DownSample(HZ, T_length, H_length))
+dataset = TimeSeriesDataset(f'./datasets/{file}.pkl', transform=DownSample(HZ, T_length, H_length))
 x_i, idx_test, y_i, _ = train_test_split(range(len(dataset)), dataset.y,
                                          stratify=dataset.y,
                                          random_state=random_state,

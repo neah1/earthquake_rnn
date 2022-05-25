@@ -73,7 +73,7 @@ def process_waves(folders):
         join_waves(folder)
 
 
-def create_dataset(idx, low, high, flat):
+def create_dataset(file, idx, low, high, flat):
     print('Combining data')
     events = pd.read_pickle('./datasets/sets/events.pkl')
     active = pd.read_pickle('./datasets/sets/waves_active.pkl')
@@ -91,28 +91,33 @@ def create_dataset(idx, low, high, flat):
         idx = min([low_size, high_size, flat_size])
     print(f'IDX: {idx}, Low events: {len(active_low)}, High events: {len(active_high)}, Normal events: {len(normal)}')
     df = pd.concat([active_low[:floor(idx * low)], active_high[:floor(idx * high)], normal[:floor(idx * flat)]])
-    df.to_pickle(f'./datasets/sets/dataset_{idx}.pkl')
+    df.to_pickle(f'./datasets/{file}.pkl')
 
 
-def normalize_scale(file, scale, normalize):
+def normalize_scale(file, out, normalize, scale, reverse=False):
     print('Normalizing dataset')
-    df = pd.read_pickle(f'./datasets/sets/{file}.pkl')
+    df = pd.read_pickle(f'./datasets/{file}_raw.pkl')
     temp = df['label'].copy()
     df = df.drop(columns=['label'])
-    if scale:
+    if normalize:
         norm = Normalizer()
         norm.fit(df.values.flatten().tolist())
         df = df.apply(lambda x: x.apply(lambda y: norm.transform(y.reshape(1, -1))[0]))
-    if normalize:
+    if scale:
         scaler = StandardScaler()
         scaler.fit(df.values.flatten().tolist())
         df = df.apply(lambda x: x.apply(lambda y: scaler.transform(y.reshape(1, -1))[0]))
+    if reverse:
+        norm = Normalizer()
+        norm.fit(df.values.flatten().tolist())
+        df = df.apply(lambda x: x.apply(lambda y: norm.transform(y.reshape(1, -1))[0]))
     df['label'] = temp
-    df.to_pickle(f'./datasets/sets/{file}_temp.pkl')
+    df.to_pickle(f'./datasets/{file}_{out}.pkl')
 
 
-# TODO Normalize per station. Process all datasets.
-# TODO Select stations. Select channels. Over-fitting.
-# process_waves(['active', 'normal'])
-# create_dataset(idx=0, low=0.5, high=0.0, flat=0.5)
-# normalize_scale('dataset', scale=True, normalize=True)
+# TODO Normalize per station. Select stations. Select channels. LSTM parameters. Over-fitting. K-Fold. SVM.
+# create_dataset('dataset_5k_raw', idx=5000, low=0.5, high=0.0, flat=0.5)
+normalize_scale('dataset_10k', 'norm', normalize=True, scale=False)
+normalize_scale('dataset_10k', 'scale', normalize=False, scale=True)
+normalize_scale('dataset_10k', 'both', normalize=True, scale=True)
+normalize_scale('dataset_10k', 'rever', normalize=False, scale=True, reverse=True)

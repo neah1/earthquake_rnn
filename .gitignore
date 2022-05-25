@@ -1,6 +1,4 @@
 .idea
 __pycache__
-example/
+data/
 main/datasets/
-main/runs/
-main/plots/
