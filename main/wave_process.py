@@ -73,18 +73,18 @@ def process_waves(folders):
         join_waves(folder)
 
 
-def create_dataset(low, high, flat, idx=None):
+def create_dataset(idx, low, high, flat):
     print('Combining data')
+    events = pd.read_pickle('./datasets/sets/events.pkl')
     active = pd.read_pickle('./datasets/sets/waves_active.pkl')
     normal = pd.read_pickle('./datasets/sets/waves_normal.pkl')
-    events = pd.read_pickle('./datasets/sets/events.pkl')
     low_events = events['event_id'].apply(lambda x: x.split('/')[-1])
     normal['label'] = 0
     active['label'] = active.index
     active['label'] = active['label'].apply(lambda x: 1 if x in list(low_events) else 0)
     active_low = active[active['label'] == 1]
     active_high = active[active['label'] == 0]
-    if not idx:
+    if idx == 0:
         low_size = float('inf') if low == 0.0 else len(active_low) / low
         high_size = float('inf') if high == 0.0 else len(active_high) / high
         flat_size = float('inf') if flat == 0.0 else len(normal) / flat
@@ -111,8 +111,8 @@ def normalize_scale(file, scale, normalize):
     df.to_pickle(f'./datasets/sets/{file}_temp.pkl')
 
 
-# TODO Normalize per station.
-# TODO Process 4-5k events. Process raw 10k.
+# TODO Normalize per station. Process all datasets.
 # TODO Select stations. Select channels. Over-fitting.
-# create_dataset(low=0.5, high=0.0, flat=0.5, idx=int(sys.argv[1]))
-normalize_scale('dataset_10k_raw', scale=True, normalize=True)
+# process_waves(['active', 'normal'])
+# create_dataset(idx=0, low=0.5, high=0.0, flat=0.5)
+# normalize_scale('dataset', scale=True, normalize=True)
