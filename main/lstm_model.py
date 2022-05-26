@@ -82,11 +82,6 @@ class LossCounter:
         self.labels = []
         self.predictions = []
 
-    def reset(self):
-        self.loss = 0.0
-        self.labels = []
-        self.predictions = []
-
     def update(self, loss, labels, outputs):
         self.loss += loss
         self.labels.append(labels)

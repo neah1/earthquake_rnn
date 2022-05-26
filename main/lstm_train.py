@@ -54,13 +54,14 @@ writer.add_graph(model, iter(train_loader).next()[0])
 # 2) Set training variables
 last_epoch = n_epochs
 n_total_steps = len(train_loader)
-n_steps = floor(n_total_steps / 3)
+n_steps = floor(n_total_steps / 1)
 early_stop = EarlyStopper(patience)
 train_counter = LossCounter(len(train_loader))
 valid_counter = LossCounter(len(valid_loader))
 
-# 3) Training loop
+# 3) Model training and validation
 for epoch in range(n_epochs):
+    # Training loop
     for i, (inp, labels) in enumerate(train_loader):
         labels = labels.unsqueeze(1)
         outputs = model(inp)
@@ -71,11 +72,13 @@ for epoch in range(n_epochs):
         train_counter.update(loss.item(), labels, outputs)
         if (i + 1) % n_steps == 0:
             print(f'Epoch: {epoch + 1}/{n_epochs}, step: {i + 1}/{n_total_steps}, loss: {loss.item():.4f}')
+    # Validation loop
     for i, (inp, labels) in enumerate(valid_loader):
         labels = labels.unsqueeze(1)
         outputs = model(inp)
         loss = criterion(outputs, labels)
         valid_counter.update(loss.item(), labels, outputs)
+    # Plot loss and accuracy
     train_loss = train_counter.get_loss()
     valid_loss = valid_counter.get_loss()
     train_acc = train_counter.get_acc()
@@ -85,8 +88,9 @@ for epoch in range(n_epochs):
     writer.add_scalar('Accuracy: Training', train_acc, epoch)
     writer.add_scalar('Accuracy: Validation', valid_acc, epoch)
     if versus:
-        writer.add_scalars('Loss: Training vs Validation', {'train': train_loss, 'valid': valid_loss}, epoch)
-        writer.add_scalars('Accuracy: Training vs Validation', {'train': train_acc, 'valid': valid_acc}, epoch)
+        writer.add_scalars('Loss', {'training': train_loss, 'validation': valid_loss}, epoch)
+        writer.add_scalars('Accuracy', {'training': train_acc, 'validation': valid_acc}, epoch)
+    # Early stopping
     if early_stop.update(valid_loss):
         print('Early stopping')
         last_epoch = epoch + 1
@@ -100,7 +104,7 @@ with torch.no_grad():
         outputs = model(inp)
         test_counter.update(0, labels, outputs)
     labels, predictions = test_counter.get_results()
-    writer.add_pr_curve('PR Curve', labels, predictions, )
+    writer.add_pr_curve('PR Curve', labels, predictions)
     writer.flush()
     accuracy = test_counter.get_acc()
     print(f'Accuracy = {accuracy:.4f}')
@@ -108,3 +112,6 @@ with torch.no_grad():
              f"EPOCH: {last_epoch}/{n_epochs}, PATIENCE: {patience}, LR: {learning_rate}."
     writer.add_text('Parameters', str(params))
     writer.close()
+
+# torch.save(model.state_dict(), "model.pth")
+# model.load_state_dict(torch.load("model.pth", map_location=device))

@@ -115,9 +115,11 @@ def normalize_scale(file, out, normalize, scale, reverse=False):
     df.to_pickle(f'./datasets/{file}_{out}.pkl')
 
 
-# TODO Normalize per station. Select stations. Select channels. LSTM parameters. Over-fitting. K-Fold. SVM.
+# TODO
+#  LSTM parameters. Over-fitting. K-Fold. SVM.
+#  Normalize per station. Select stations. Select channels.
 # create_dataset('dataset_5k_raw', idx=5000, low=0.5, high=0.0, flat=0.5)
-normalize_scale('dataset_10k', 'norm', normalize=True, scale=False)
-normalize_scale('dataset_10k', 'scale', normalize=False, scale=True)
-normalize_scale('dataset_10k', 'both', normalize=True, scale=True)
-normalize_scale('dataset_10k', 'rever', normalize=False, scale=True, reverse=True)
+# normalize_scale('dataset_10k', 'norm', normalize=True, scale=False)
+# normalize_scale('dataset_10k', 'scale', normalize=False, scale=True)
+# normalize_scale('dataset_10k', 'both', normalize=True, scale=True)
+# normalize_scale('dataset_10k', 'rever', normalize=False, scale=True, reverse=True)
