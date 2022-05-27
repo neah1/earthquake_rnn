@@ -91,7 +91,7 @@ def create_dataset(file, idx, low, high, flat):
         idx = min([low_size, high_size, flat_size])
     print(f'IDX: {idx}, Low events: {len(active_low)}, High events: {len(active_high)}, Normal events: {len(normal)}')
     df = pd.concat([active_low[:floor(idx * low)], active_high[:floor(idx * high)], normal[:floor(idx * flat)]])
-    df.to_pickle(f'./datasets/{file}.pkl')
+    df.to_pickle(f'./datasets/{file}_raw.pkl')
 
 
 def normalize_scale(file, out, normalize, scale, reverse=False):
@@ -118,7 +118,7 @@ def normalize_scale(file, out, normalize, scale, reverse=False):
 # TODO
 #  LSTM parameters. Over-fitting. K-Fold. SVM.
 #  Normalize per station. Select stations. Select channels.
-# create_dataset('dataset_5k_raw', idx=5000, low=0.5, high=0.0, flat=0.5)
+# create_dataset('dataset_10k', idx=0, low=0.5, high=0.0, flat=0.5)
 # normalize_scale('dataset_10k', 'norm', normalize=True, scale=False)
 # normalize_scale('dataset_10k', 'scale', normalize=False, scale=True)
 # normalize_scale('dataset_10k', 'both', normalize=True, scale=True)

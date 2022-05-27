@@ -106,7 +106,7 @@ class LossCounter:
 
 class EarlyStopper:
     def __init__(self, patience):
-        self.patience = patience
+        self.patience = patience if patience >= 0 else int('inf')
         self.trigger = 0
         self.last = 1000
 

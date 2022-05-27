@@ -16,13 +16,13 @@ HZ = int(sys.argv[4])
 n_epochs = int(sys.argv[5])
 patience = int(sys.argv[6])
 learning_rate = float(sys.argv[7])
+versus = sys.argv[8] == 'True'
 
 # Model parameters
 random_state = 42
 batch_size = 100
 valid_size = 0.2
 test_size = 0.2
-versus = False
 
 name = f'{file}_T{T_length}_H{H_length}_HZ{HZ}_E{n_epochs}_PT{patience}_LR{learning_rate}'
 print(name)
@@ -31,10 +31,12 @@ print(name)
 dataset = TimeSeriesDataset(f'./datasets/{file}.pkl', transform=DownSample(HZ, T_length, H_length))
 x_i, idx_test, y_i, _ = train_test_split(range(len(dataset)), dataset.y,
                                          stratify=dataset.y,
+                                         shuffle=True,
                                          random_state=random_state,
-                                         test_size=test_size)
+                                         test_size=test_size,)
 idx_train, idx_valid, _, _ = train_test_split(x_i, y_i,
                                               stratify=y_i,
+                                              shuffle=True,
                                               random_state=random_state,
                                               test_size=valid_size / (1 - test_size))
 train_split = Subset(dataset, idx_train)
