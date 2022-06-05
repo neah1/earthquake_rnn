@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 import torch
 from torch import nn
-from scipy.signal import decimate
 from torch.autograd import Variable
 from torch.utils.data import Dataset
 
@@ -68,14 +67,10 @@ class DownSample:
 
     def __call__(self, sample):
         x, y = sample
-        res = []
-        for val in x:
-            val = decimate(val, self.factor, ftype='fir')
-            val = val[self.start:self.end]
-            res.append(val)
-        if self.T != len(res[0]):
-            raise Exception(f'Length of recording is too short. W: {len(res[0])}, T: {self.T}.')
-        x = torch.tensor(np.array(res)).float().to(device)
+        x = np.array([xi[::self.factor][self.start:self.end] for xi in x])
+        if self.T != len(x[0]):
+            raise Exception(f'Length of recording is too short. W: {len(x[0])}, T: {self.T}.')
+        x = torch.tensor(np.array(x)).float().to(device)
         y = torch.tensor(y).float().to(device)
         return x, y
 
