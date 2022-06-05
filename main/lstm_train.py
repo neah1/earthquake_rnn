@@ -9,41 +9,32 @@ from lstm_model import TimeSeriesDataset, DownSample, LSTM, device, LossCounter,
 
 # Training parameters
 file = sys.argv[1]
-T_length = int(sys.argv[2])
-H_length = int(sys.argv[3])
-HZ = int(sys.argv[4])
-n_epochs = int(sys.argv[5])
-patience = int(sys.argv[6])
-learning_rate = float(sys.argv[7])
-versus = sys.argv[8] == 'True'
+versus = sys.argv[2] == 'True'
+n_epochs = int(sys.argv[3])
+patience = int(sys.argv[4])
+learning_rate = float(sys.argv[5])
+T_length = int(sys.argv[6])
+HZ = int(sys.argv[7])
 
 # Model parameters
-random_state = 42
+H_length = 3
 batch_size = 100
 valid_size = 0.2
 test_size = 0.2
+random_state = 42
 
 name = f'{file}_T{T_length}_H{H_length}_HZ{HZ}_E{n_epochs}_PT{patience}_LR{learning_rate}'
 print(name)
 
 # 0) Prepare data
 dataset = TimeSeriesDataset(f'./datasets/{file}.pkl', transform=DownSample(HZ, T_length, H_length))
-x_i, idx_test, y_i, _ = train_test_split(range(len(dataset)), dataset.y,
-                                         stratify=dataset.y,
-                                         shuffle=True,
-                                         random_state=random_state,
-                                         test_size=test_size,)
-idx_train, idx_valid, _, _ = train_test_split(x_i, y_i,
-                                              stratify=y_i,
-                                              shuffle=True,
-                                              random_state=random_state,
-                                              test_size=valid_size / (1 - test_size))
-train_split = Subset(dataset, idx_train)
-train_loader = DataLoader(train_split, batch_size=batch_size, shuffle=True)
-valid_split = Subset(dataset, idx_valid)
-valid_loader = DataLoader(valid_split, batch_size=batch_size, shuffle=True)
-test_split = Subset(dataset, idx_test)
-test_loader = DataLoader(test_split, batch_size=batch_size, shuffle=True)
+x_i, idx_test, y_i, _ = train_test_split(range(len(dataset)), dataset.y, stratify=dataset.y, shuffle=True,
+                                         random_state=random_state, test_size=test_size)
+idx_train, idx_valid, _, _ = train_test_split(x_i, y_i, stratify=y_i, shuffle=True,
+                                              random_state=random_state, test_size=valid_size / (1 - test_size))
+train_loader = DataLoader(Subset(dataset, idx_train), batch_size=batch_size, shuffle=True)
+valid_loader = DataLoader(Subset(dataset, idx_valid), batch_size=batch_size, shuffle=True)
+test_loader = DataLoader(Subset(dataset, idx_test), batch_size=batch_size, shuffle=True)
 
 # 1) Create model, loss and optimizer
 model = LSTM(input_size=(T_length * HZ), hidden_size=2, num_classes=1, num_layers=1).to(device)

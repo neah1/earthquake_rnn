@@ -61,7 +61,7 @@ def plot_waves(data, name, low, high, signal=60):
 
 
 def gather_wave_plots(name, low, high):
-    df = pd.read_pickle(f'../datasets/data/{name}.pkl')
+    df = pd.read_pickle(f'../datasets/sets/waves/{name}.pkl')
     plot_waves(df.iloc[0][15:25], f'{name}_low', low, high)
     plot_waves(df.iloc[1][15:25], f'{name}_high', low, high)
     plot_waves(df.iloc[2][15:25], f'{name}_flat', low, high)

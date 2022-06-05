@@ -74,9 +74,8 @@ async def final_download(folder, start, stop):
         await final_download_threaded(folder, event_sublist, stations_df, T_event, H_event)
 
 
-# Active/Normal 10k
-a = 10000
-b = 11000
+# Active 16k
+a = 16000
+b = 20000
 print(f'Downloading from {a} to {b}')
 asyncio.run(final_download('active', a, b))
-asyncio.run(final_download('normal', a, b))

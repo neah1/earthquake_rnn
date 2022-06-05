@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import pandas as pd
 import torch
@@ -110,7 +111,7 @@ class LossCounter:
 
 class EarlyStopper:
     def __init__(self, patience):
-        self.patience = patience if patience >= 0 else int('inf')
+        self.patience = patience if patience >= 0 else math.inf
         self.trigger = 0
         self.last = 1000
 
