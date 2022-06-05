@@ -48,7 +48,7 @@ test_loader = DataLoader(test_split, batch_size=batch_size, shuffle=True)
 # 1) Create model, loss and optimizer
 model = LSTM(input_size=(T_length * HZ), hidden_size=2, num_classes=1, num_layers=1).to(device)
 criterion = nn.BCELoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 writer = SummaryWriter("./datasets/runs/" + name)
 writer.add_graph(model, iter(train_loader).next()[0])
 
