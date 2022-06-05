@@ -1,5 +1,4 @@
 import sys
-from datetime import datetime
 from math import floor
 import torch
 from sklearn.model_selection import train_test_split
@@ -114,6 +113,3 @@ with torch.no_grad():
              f"EPOCH: {last_epoch}/{n_epochs}, PATIENCE: {patience}, LR: {learning_rate}."
     writer.add_text('Parameters', str(params))
     writer.close()
-
-# torch.save(model.state_dict(), "model.pth")
-# model.load_state_dict(torch.load("model.pth", map_location=device))

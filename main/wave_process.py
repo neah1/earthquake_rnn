@@ -94,11 +94,14 @@ def create_dataset(file, idx, low, high, flat):
     df.to_pickle(f'./datasets/{file}_raw.pkl')
 
 
-def normalize_scale(file, out, normalize, scale, reverse=False):
-    print('Normalizing dataset')
+def normalize_scale(file, out, normalize, scale, frames=None):
+    print('Pre-processing dataset')
     df = pd.read_pickle(f'./datasets/{file}_raw.pkl')
     temp = df['label'].copy()
     df = df.drop(columns=['label'])
+    if frames:
+        for i, row in df.iterrows():
+            df.loc[i] = row.apply(lambda x: x[-frames * 100:])
     if normalize:
         norm = Normalizer()
         norm.fit(df.values.flatten().tolist())
@@ -107,19 +110,13 @@ def normalize_scale(file, out, normalize, scale, reverse=False):
         scaler = StandardScaler()
         scaler.fit(df.values.flatten().tolist())
         df = df.apply(lambda x: x.apply(lambda y: scaler.transform(y.reshape(1, -1))[0]))
-    if reverse:
-        norm = Normalizer()
-        norm.fit(df.values.flatten().tolist())
-        df = df.apply(lambda x: x.apply(lambda y: norm.transform(y.reshape(1, -1))[0]))
     df['label'] = temp
     df.to_pickle(f'./datasets/{file}_{out}.pkl')
 
 
-# TODO
-#  LSTM parameters. Over-fitting. K-Fold. SVM.
-#  Normalize per station. Select stations. Select channels.
-# create_dataset('dataset_10k', idx=0, low=0.5, high=0.0, flat=0.5)
-# normalize_scale('dataset_10k', 'norm', normalize=True, scale=False)
-# normalize_scale('dataset_10k', 'scale', normalize=False, scale=True)
-# normalize_scale('dataset_10k', 'both', normalize=True, scale=True)
-# normalize_scale('dataset_10k', 'rever', normalize=False, scale=True, reverse=True)
+# TODO more data, repeat.
+#  K-fold, regularization, dropout.
+# create_dataset('dataset', idx=0, low=0.5, high=0.0, flat=0.5)
+# normalize_scale('dataset', 'norm', normalize=True, scale=False)
+# normalize_scale('dataset', 'scale', normalize=False, scale=True)
+# normalize_scale('dataset', 'both', normalize=True, scale=True)

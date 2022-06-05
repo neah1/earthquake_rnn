@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import torch
 from torch import nn
+from scipy.signal import decimate
 from torch.autograd import Variable
 from torch.utils.data import Dataset
 
@@ -57,7 +58,7 @@ class DownSample:
         T = T * frequency
         H = H * frequency
         self.T = T
-        self.start = T + H
+        self.start = -(T + H)
         self.end = -H if H > 0 else None
         self.factor = round(100 / frequency)
 
@@ -65,8 +66,8 @@ class DownSample:
         x, y = sample
         res = []
         for val in x:
-            val = val[::self.factor]
-            val = val[-self.start:self.end]
+            val = decimate(val, self.factor, ftype='fir')
+            val = val[self.start:self.end]
             res.append(val)
         if self.T != len(res[0]):
             raise Exception(f'Length of recording is too short. W: {len(res[0])}, T: {self.T}.')

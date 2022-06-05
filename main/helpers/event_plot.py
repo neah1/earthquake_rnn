@@ -1,56 +1,50 @@
 import numpy as np
 import geopandas as gpd
+import matplotlib.pyplot as plt
 import pandas as pd
-from matplotlib import pyplot as plt
 
 
-def plot_stations(events, stations, name):
+def plot_events(events, stations, name):
     fig, ax = plt.subplots(figsize=(10, 10))
     countries = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
     ax = countries[countries["name"] == "New Zealand"].plot(color="lightgrey", ax=ax)
-    events.plot(x="longitude", y="latitude", kind="scatter", s=0.1, ax=ax)
-    stations.plot(x="longitude", y="latitude", kind="scatter", ax=ax, color='yellow')
-    plt.savefig(f'../datasets/plots/{name}.png', transparent=True)
-    del fig, ax
-
-
-def plot_events(events, name):
-    fig, ax = plt.subplots(figsize=(10, 10))
-    countries = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
-    ax = countries[countries["name"] == "New Zealand"].plot(color="lightgrey", ax=ax)
-    events.plot(x="longitude", y="latitude", kind="scatter", s=0.1, ax=ax)
+    events.plot(x="longitude", y="latitude", kind="scatter", s=0.1, color='yellow', alpha=0.15, ax=ax)
+    stations.plot(x="longitude", y="latitude", kind="scatter", ax=ax)
+    plt.xlabel('Longitude', fontsize=20)
+    plt.ylabel('Latitude', fontsize=20)
+    plt.xlim([166, 179])
+    plt.ylim([-48, -34])
+    plt.grid(color="grey")
     plt.savefig(f'../datasets/plots/{name}.png', transparent=True)
     del fig, ax
 
 
 def plot_magnitude(events, name):
-    fig, ax = plt.subplots(figsize=(17, 10))
-    w = 0.2
-    n = np.ceil((events['magnitude'].max() - events['magnitude'].min()) / w)
+    fig, ax = plt.subplots(figsize=(10, 10))
+    n = np.ceil((events['magnitude'].max() - events['magnitude'].min()) / 0.2)
     plt.hist(events['magnitude'], histtype='bar', ec='black', bins=int(n))
-    ax.tick_params(axis='both', labelsize=30)
-    ax.tick_params(axis='both', labelsize=30)
-    plt.ylabel('Number of Earthquakes', fontsize=40)
-    plt.xlabel('Magnitude (M)', fontsize=40)
+    ax.tick_params(axis='both', labelsize=15)
+    plt.ylabel('Number of Earthquakes', fontsize=20)
+    plt.xlabel('Magnitude (M)', fontsize=20)
     plt.xlim([0, 5])
     plt.savefig(f'../datasets/plots/{name}.png', transparent=True)
     del fig, ax
 
 
-def plot_depth(events, name):
-    fig, ax = plt.subplots(figsize=(10, 10))
-    plt.hist(events['depth'], histtype='bar', ec='black', bins=25)
-    ax.tick_params(axis='both', labelsize=15)
-    ax.tick_params(axis='both', labelsize=15)
-    plt.ylabel('Number of Earthquakes', fontsize=20)
-    plt.xlabel('Depth (km)', fontsize=20)
-    plt.xlim([0, 500])
-    plt.savefig(f'../datasets/plots/{name}.png', transparent=True)
-    del fig, ax
+def gather_event_plots():
+    events_df = pd.read_pickle('../datasets/sets/events.pkl')
+    stations_df = pd.read_pickle('../datasets/sets/stations.pkl')
+    plot_events(events_df, stations_df, 'stations')
+    plot_magnitude(events_df, 'magnitude')
+
+    events_df = pd.read_pickle('../datasets/sets/events_full.pkl')
+    stations_df = pd.read_pickle('../datasets/sets/stations_full.pkl')
+    plot_events(events_df, stations_df, 'all_stations')
+    plot_magnitude(events_df, 'all_magnitude')
 
 
-def plot_waves(data, name, signal=3000):
-    time_arr = np.linspace(0.0, 30.0, signal)
+def plot_waves(data, name, low, high, signal=60):
+    time_arr = np.linspace(0.0, signal, signal * 100)
     fig = plt.figure(figsize=(15, 6))
     ax = fig.add_subplot(1, 1, 1)
     cmap = plt.get_cmap('Accent')
@@ -58,20 +52,21 @@ def plot_waves(data, name, signal=3000):
     for i, s in enumerate(data):
         ax.plot(time_arr, s, color=colors[i])
     ax.tick_params(axis='both', labelsize=15)
-    ax.tick_params(axis='both', labelsize=15)
-    plt.ylabel('Velocity HZ', fontsize=20)
+    plt.ylabel('HHZ Velocity', fontsize=20)
     plt.xlabel('Timestep', fontsize=20)
-    plt.xlim([0, 30])
+    plt.xlim([0, signal])
+    plt.ylim([low, high])
     plt.savefig(f'../datasets/plots/{name}.png', transparent=True)
     del fig, ax
 
 
-# events_df = pd.read_pickle('../datasets/sets/events.pkl')
-# stations_df = pd.read_pickle('../datasets/sets/stations.pkl')
-# waves_df = pd.read_pickle('../datasets/sets/dataset.pkl')
+def gather_wave_plots(name, low, high):
+    df = pd.read_pickle(f'../datasets/data/{name}.pkl')
+    plot_waves(df.iloc[0][15:25], f'{name}_low', low, high)
+    plot_waves(df.iloc[1][15:25], f'{name}_high', low, high)
+    plot_waves(df.iloc[2][15:25], f'{name}_flat', low, high)
 
-# plot_waves(waves_df[waves_df['label'] == 0].iloc[-2][0:3], 'waves')
-# plot_stations(events_df, stations_df, 'NZ stations')
-# plot_magnitude(events_df, 'Event magnitudes')
-# plot_events(events_df, 'NZ earthquakes')
-# plot_depth(events_df, 'event depths')
+
+# gather_wave_plots('temp_norm', -0.15, 0.17)
+# gather_wave_plots('temp_scale', -9, 2)
+# gather_wave_plots('temp_both', -4, 6)
