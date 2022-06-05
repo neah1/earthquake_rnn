@@ -17,8 +17,9 @@ class LSTM(nn.Module):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers, batch_first=True)
-        self.fc_1 = nn.Linear(hidden_size, 128)
         self.relu = nn.ReLU()
+        self.dropout = nn.Dropout(0.1)
+        self.fc_1 = nn.Linear(hidden_size, 128)
         self.fc_2 = nn.Linear(128, num_classes)
         self.sigm = nn.Sigmoid()
 
@@ -28,8 +29,10 @@ class LSTM(nn.Module):
         output, (hn, cn) = self.lstm(x, (h_0, c_0))  # lstm with input, hidden, and internal state
         hn = hn.view(-1, self.hidden_size)  # reshaping the data for Dense layer next
         out = self.relu(hn)
+        out = self.dropout(out)
         out = self.fc_1(out)
         out = self.relu(out)
+        out = self.dropout(out)
         out = self.fc_2(out)
         out = self.sigm(out)
         return out

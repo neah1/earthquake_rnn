@@ -114,8 +114,6 @@ def normalize_scale(file, out, normalize, scale, frames=None):
     df.to_pickle(f'./datasets/{file}_{out}.pkl')
 
 
-# TODO more data, repeat.
-#  K-fold, dropout.
 # create_dataset('dataset', idx=0, low=0.5, high=0.0, flat=0.5)
 # normalize_scale('dataset', 'norm', normalize=True, scale=False)
 # normalize_scale('dataset', 'scale', normalize=False, scale=True)
